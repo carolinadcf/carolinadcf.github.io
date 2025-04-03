@@ -1,19 +1,182 @@
-/* Two image containers (use 25% for four, and 50% for two, etc) */
-.column {
-    float: left;
-    width: 50%;
-    padding: 5px;
+/* Define CSS variables for color themes */
+:root {
+    --primary-bg-light: #f4f4f9;
+    --primary-bg-dark: #1a1a2e;
+    --primary-color-light: #4c6ef5;
+    --primary-color-dark: #82aaff;
+    --secondary-bg-light: #ffffff;
+    --secondary-bg-dark: #393951;
+    --text-light: #333333;
+    --text-dark: #f4f4f9;
+    --secondary-text-light: #f4f4f9;
+    --secondary-text-dark: #333333;
+    --border-light: #dcdcdc;
+    --border-dark: #444444;
+    --button-bg-light: #4c6ef5;
+    --button-bg-dark: #5e77f3;
+    --button-hover-light: #3352cc;
+    --button-hover-dark: #435cb0;
 }
 
-/* Clear floats after image containers */
-.row::after {
-    content: "";
-    clear: both;
-    display: table;
+/* Light Mode */
+body.light-mode {
+    background-color: var(--primary-bg-light);
+    color: var(--text-light);
 }
 
-@media screen and (max-width: 500px) {
-    .column {
-        width: 100%;
-    }
+body.light-mode a {
+    color: var(--primary-color-light);
+}
+
+body.light-mode button {
+    background-color: var(--button-bg-light);
+    color: var(--secondary-bg-light);
+    border: 2px solid var(--border-light);
+}
+
+body.light-mode button:hover {
+    background-color: var(--button-hover-light);
+}
+
+/* Dark Mode */
+body.dark-mode {
+    background-color: var(--primary-bg-dark);
+    color: var(--text-dark);
+}
+
+body.dark-mode a {
+    color: var(--primary-color-dark);
+}
+
+body.dark-mode button {
+    background-color: var(--button-bg-dark);
+    color: var(--text-dark);
+    border: 2px solid var(--border-dark);
+}
+
+body.dark-mode button:hover {
+    background-color: var(--button-hover-dark);
+}
+
+/* Bubbly Buttons and Links */
+button, a {
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 16px;
+    text-decoration: none;
+    display: inline-block;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button:active, a:active {
+    transform: scale(0.98);
+}
+
+/* Style for disabled buttons */
+button:disabled {
+    background-color: var(--border-light); /* Light gray background */
+    color: var(--text-light); /* Muted text color */
+    border: 2px solid var(--border-dark); /* Darker border */
+    cursor: not-allowed; /* Show "not-allowed" cursor */
+    opacity: 0.6; /* Reduce opacity to indicate it's disabled */
+}
+
+body.dark-mode button:disabled {
+    background-color: var(--border-dark); /* Dark gray background */
+    color: var(--text-dark); /* Muted text color for dark mode */
+    border: 2px solid var(--border-light); /* Lighter border */
+    opacity: 0.6; /* Reduce opacity */
+}
+
+/* Page layout */
+header, footer {
+    text-align: center;
+    padding: 20px;
+    background-color: var(--secondary-bg-light);
+}
+
+main {
+    text-align: center;
+    margin-top: 30px;
+}
+
+h1 {
+    font-family: 'Arial', sans-serif;
+    font-size: 3rem;
+    margin-bottom: 20px;
+}
+
+h2, a {
+    font-family: 'Arial', sans-serif;
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+p {
+    font-family: 'Arial', sans-serif;
+    font-size: 1rem;
+    margin-bottom: 20px;
+}
+
+span {
+    font-family: 'Arial', sans-serif;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+/* Toggle Button for Dark/Light Mode */
+.toggle-button {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: var(--primary-color-light);
+    color: var(--secondary-bg-light);
+    border: none;
+    border-radius: 25px;
+    padding: 15px;
+    cursor: pointer;
+    font-size: 16px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-button:hover {
+    background-color: var(--primary-color-dark);
+    transform: scale(1.1);
+}
+
+/* Center all content */
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    background-color: var(--primary-bg-light); /* Adjust for light/dark mode */
+    color: var(--text-light); /* Adjust for light/dark mode */
+}
+
+/* Ensure header, main, and footer are centered */
+header, main {
+    width: 100%;
+    text-align: center;
+}
+
+/* Footer for the image */
+footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 10px;
+    background-color: var(--secondary-bg-light); /* Default for light mode */
+    border-top: 2px solid var(--border-light); /* Default for light mode */
+    color: var(--text-light); /* Default for light mode */
+}
+
+/* Footer for Dark Mode */
+body.dark-mode footer {
+    background-color: var(--secondary-bg-dark);
+    border-top: 2px solid var(--border-dark);
+    color: var(--text-dark);
 }

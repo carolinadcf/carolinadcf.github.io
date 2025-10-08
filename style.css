@@ -125,6 +125,12 @@ a {
     margin-bottom: 10px;
 }
 
+h3 {
+    font-family: 'Arial', sans-serif;
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
 p {
     font-family: 'Arial', sans-serif;
     font-size: 1rem;
@@ -230,6 +236,10 @@ body.dark-mode footer {
         font-size: 1.5rem;
     }
 
+    h3 {
+        font-size: 1.2rem;
+    }
+
     .button-container button {
         font-size: 0.9rem;
         padding: 8px 16px;
@@ -253,6 +263,10 @@ body.dark-mode footer {
     h2,
     a {
         font-size: 1.2rem;
+    }
+
+    h3 {
+        font-size: 1rem;
     }
 
     .button-container button {

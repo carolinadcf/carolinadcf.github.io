@@ -1,0 +1,71 @@
+[
+    {
+        "title": "Animics",
+        "link": "https://animics.gti.upf.edu/",
+        "organization": "GTI-UPF",
+        "description": "Animics is a web-based platform for creating and sharing interactive 3D animations.",
+        "image": "/projects/animics.png",
+        "tags": [
+            "WebGL",
+            "3D",
+            "Animation"
+        ],
+        "startDate": "July 2023",
+        "endDate": ""
+    },
+    {
+        "title": "Performs",
+        "link": "https://performs.gti.upf.edu/",
+        "organization": "GTI-UPF",
+        "description": "",
+        "image": "/projects/performs.png",
+        "tags": [
+            "WebGL",
+            "3D",
+            "Animation"
+        ],
+        "startDate": "July 2023",
+        "endDate": ""
+    },
+    {
+        "title": "Performs Atelier",
+        "link": "https://atelier.gti.upf.edu/",
+        "organization": "GTI-UPF",
+        "description": "",
+        "image": "/projects/atelier.png",
+        "tags": [
+            "WebGL",
+            "3D",
+            "Animation"
+        ],
+        "startDate": "July 2023",
+        "endDate": ""
+    },
+    {
+        "title": "Searebbel",
+        "link": "https://carolinadcf.github.io/searebbel/",
+        "organization": "Bachelor's Thesis",
+        "description": ".",
+        "image": "/projects/searebbel.png",
+        "tags": [
+            "WebGL",
+            "3D",
+            "Rendering"
+        ],
+        "startDate": "July 2022",
+        "endDate": "June 2023"
+    },
+    {
+        "title": "The Good Rave",
+        "link": "https://globalgamejam.org/games/2024/good-rave-7",
+        "organization": "Personal Project",
+        "description": ".",
+        "image": "/projects/GoodRave.png",
+        "tags": [
+            "Godot",
+            "Game"
+        ],
+        "startDate": "2024",
+        "endDate": ""
+    }
+]

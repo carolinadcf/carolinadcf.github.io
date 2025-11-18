@@ -1,0 +1,64 @@
+<html>
+
+<head>
+    <title>Carol's Portfolio</title>
+    <link rel="icon" type="image/x-icon" href="./data/carol.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" type="text/css" href="./style.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.skypack.dev/three@0.136/",
+                "three/addons/": "https://cdn.skypack.dev/three@0.136/examples/jsm/"
+            }
+        }
+    </script>
+
+</head>
+
+<body>
+    <div id="preloader" class="preloader">
+        <div class="ticket">
+            <div class="check">
+
+                <div class="title">
+                    <h1>CAROL'S MUSEUM</h1>
+                </div>
+
+                <hr class="separator">
+
+                <div class="subtitle">
+                    <h3>Welcome to my portfolio.</h3>
+                    <h3>Work in progress. Be patient :)</h3>
+                </div>
+
+                <div class="info">
+                    <p>November 2025</p>
+                    <p>Barcelona</p>
+                </div>
+
+                <div class="extra-info">
+                    <p>@carolina.dcf</p>
+                </div>
+            </div>
+
+            <div class="stub" id="preloader-stub">
+                <div class="stub-text">
+                    <h1>Loading...</h1>
+                </div>
+
+                <div class="barcode"></div>
+                <div class="stub-number">
+                    <p>Ticket No: 12343315</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./index.js" type="module"></script>
+</body>
+
+</html>

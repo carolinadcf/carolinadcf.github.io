@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import {TransformControls} from 'three/addons/controls/TransformControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 
 class App {
 
@@ -18,18 +19,24 @@ class App {
         this.camera = null;
         this.controls = null;        
 		this.lights = [];
-
-        this.gltfLoader = null;
 		
+		// projects and frames
 		this.projects = [];
 		this.frames = [];
 
+		// raycaster
 		this.raycaster = new THREE.Raycaster();
 		this.mouse = new THREE.Vector2();
 		this.intersectedFrame = null;
 		this.mainFrame = null;
 
+		// labels
+		this.labelRenderer = new CSS2DRenderer();
+
+        // instantiate loaders
 		this.textureLoader = new THREE.TextureLoader();
+        this.gltfLoader = new GLTFLoader();
+
 	}
 
 	onMouseMove( event ) {
@@ -42,14 +49,7 @@ class App {
 	onMouseClick( event ) {
 		if (this.intersectedFrame) {
 			const projectTitle = this.intersectedFrame.name;
-			console.log('Clicked on project:', projectTitle);
-			// show more info about the project
-			const project = this.projects.find(p => p.title === projectTitle);
-			if (project) {
-				const info = `Title: ${project.title}\nOrganization: ${project.organization}\nLink: ${project.link}\nDescription: ${project.description}`;
-				alert(info);
-				// show in a better way later
-			}
+			this.showCard(projectTitle); // show more info about the project
 		}
 	}
 
@@ -84,30 +84,7 @@ class App {
 		window.addEventListener( 'mousemove', this.onMouseMove.bind(this), false );
 		window.addEventListener( 'click', this.onMouseClick.bind(this), false );
 	
-		// include lights
-		const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
-		this.scene.add(ambientLight);
-
-		const dirLight = new THREE.DirectionalLight( 0xffffff, 1 );
-		dirLight.position.set( -2, 10, 0 );
-		dirLight.castShadow = true;
-		dirLight.shadow.radius = 4;
-		dirLight.shadow.bias = - 0.0005;
-		const helper = new THREE.CameraHelper(dirLight.shadow.camera);
-		//this.scene.add(helper);
-
-		const dirGroup = new THREE.Group();
-		dirGroup.add( dirLight );
-		this.scene.add( dirGroup );
-
-		const pointLight = new THREE.PointLight(0xffffff, 1.0);
-		pointLight.position.y = 7;
-		// this.scene.add(pointLight);
-
-		this.lights.push(ambientLight, dirLight, pointLight);
-
-        // Instantiate a loader
-        this.gltfLoader = new GLTFLoader();
+		this.addLights();
 
         // museum
 		this.gltfLoader.load( './data/vr_gallery/scene.gltf', ( gltf ) => {
@@ -167,9 +144,6 @@ class App {
 			});
 			
 			this.scene.add( this.carol );
-			
-			// this.mixerAvatar = new THREE.AnimationMixer( this.carol );
-			// this.mixerAvatar.clipAction( gltf.animations[ 0 ] ).play();
 
 			const skeleton = new THREE.SkeletonHelper(this.carol);
 			// this.scene.add(skeleton);  // Optional: to visualize the skeleton
@@ -262,6 +236,13 @@ class App {
 			console.error('Error loading projects data:', error);
 		});
 
+		// set up label renderer
+		this.labelRenderer.setSize( window.innerWidth, window.innerHeight );
+		this.labelRenderer.domElement.style.position = 'absolute';
+		this.labelRenderer.domElement.style.top = '0px';
+		this.labelRenderer.domElement.style.pointerEvents = 'none'; // make labels unclickable
+		document.body.appendChild( this.labelRenderer.domElement );
+
 	} // end init
 
 	onWindowResize() {
@@ -270,6 +251,7 @@ class App {
 		this.camera.updateProjectionMatrix();
 
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
+		this.labelRenderer.setSize( window.innerWidth, window.innerHeight );
 
 		this.animate();
 
@@ -301,17 +283,60 @@ class App {
 			this.intersectedFrame = null;
 		}
 		const delta = this.clock.getDelta();
-		this.mixerMusic.update( delta );
+		if (this.mixerMusic) this.mixerMusic.update( delta );
 		if (this.mixerAvatar) this.mixerAvatar.update( delta );
 		if (this.carol) {
 			this.carol.position.x = 2.5;
 			this.carol.scale.set(1.65,1.65,1.65);
 		}
-
+		
 		this.controls.update();
-
+		
 		this.renderer.render( this.scene, this.camera );
-    }
+		this.labelRenderer.render( this.scene, this.camera ); // Render the label
+	}
+
+	addLights() {
+		const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+		this.scene.add(ambientLight);
+
+		const dirLight = new THREE.DirectionalLight( 0xffffff, 1 );
+		dirLight.position.set( -2, 10, 0 );
+		dirLight.castShadow = true;
+		dirLight.shadow.radius = 4;
+		dirLight.shadow.bias = - 0.0005;
+
+		const dirGroup = new THREE.Group();
+		dirGroup.add( dirLight );
+		this.scene.add( dirGroup );
+
+		this.lights.push(ambientLight, dirLight);
+	}
+
+	showCard(projectTitle) {
+		const project = this.projects.find(p => p.title === projectTitle);
+		if (!project) return;
+
+		// remove existing labels
+		this.frames.forEach( (frame) => {
+			const existingLabel = frame.getObjectByName('label');
+			if (existingLabel) {
+				frame.remove(existingLabel);
+			}
+		});
+
+		// create label
+		const div = document.createElement( 'div' );
+		div.className = 'label';
+		div.textContent = projectTitle;
+		div.style.marginTop = '-1em';
+		
+		const label = new CSS2DObject( div );
+		label.position.set(0, 1, 0);
+		label.name = 'label';
+		this.intersectedFrame.add( label );
+
+	}
 }
 
 let app = new App();

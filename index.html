@@ -99,6 +99,22 @@
             });
     </script>
 
+    <!-- detect if on mobile via feature detection -->
+    <!-- https://medium.com/geekculture/detecting-mobile-vs-desktop-browsers-in-javascript-ad46e8d23ce5 -->
+    <script>
+        function hasTouchSupport() {
+            return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        }
+
+        if (hasTouchSupport()) {
+            console.log("Mobile device detected");
+            // redirec to mobile version
+            window.location.href = "web.html";
+        } else {
+            console.log("Desktop device detected");
+        }
+    </script>
+
     <script src="./index.js" type="module"></script>
 
 </body>

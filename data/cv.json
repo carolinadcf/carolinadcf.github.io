@@ -4,7 +4,7 @@
         "link": "https://animics.gti.upf.edu/",
         "organization": "GTI-UPF",
         "description": "Animics is a web-based platform for creating and sharing interactive 3D animations.",
-        "image": "/projects/animics.png",
+        "image": "./data/projects/animics.png",
         "tags": [
             "WebGL",
             "3D",
@@ -18,7 +18,7 @@
         "link": "https://performs.gti.upf.edu/",
         "organization": "GTI-UPF",
         "description": "",
-        "image": "/projects/performs.png",
+        "image": "./data/projects/huesca.jpg",
         "tags": [
             "WebGL",
             "3D",
@@ -32,7 +32,7 @@
         "link": "https://atelier.gti.upf.edu/",
         "organization": "GTI-UPF",
         "description": "",
-        "image": "/projects/atelier.png",
+        "image": "./data/projects/huesca.jpg",
         "tags": [
             "WebGL",
             "3D",
@@ -46,7 +46,7 @@
         "link": "https://carolinadcf.github.io/searebbel/",
         "organization": "Bachelor's Thesis",
         "description": ".",
-        "image": "/projects/searebbel.png",
+        "image": "./data/projects/searebbel.png",
         "tags": [
             "WebGL",
             "3D",
@@ -60,7 +60,7 @@
         "link": "https://globalgamejam.org/games/2024/good-rave-7",
         "organization": "Personal Project",
         "description": ".",
-        "image": "/projects/GoodRave.png",
+        "image": "./data/projects/good_rave.jpg",
         "tags": [
             "Godot",
             "Game"

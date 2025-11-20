@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import {TransformControls} from 'three/addons/controls/TransformControls.js';
 
 class App {
 
@@ -21,6 +22,35 @@ class App {
         this.gltfLoader = null;
 		
 		this.projects = [];
+		this.frames = [];
+
+		this.raycaster = new THREE.Raycaster();
+		this.mouse = new THREE.Vector2();
+		this.intersectedFrame = null;
+		this.mainFrame = null;
+
+		this.textureLoader = new THREE.TextureLoader();
+	}
+
+	onMouseMove( event ) {
+		// calculate mouse position in normalized device coordinates
+		// (-1 to +1) for both components
+		this.mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+		this.mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+	}
+
+	onMouseClick( event ) {
+		if (this.intersectedFrame) {
+			const projectTitle = this.intersectedFrame.name;
+			console.log('Clicked on project:', projectTitle);
+			// show more info about the project
+			const project = this.projects.find(p => p.title === projectTitle);
+			if (project) {
+				const info = `Title: ${project.title}\nOrganization: ${project.organization}\nLink: ${project.link}\nDescription: ${project.description}`;
+				alert(info);
+				// show in a better way later
+			}
+		}
 	}
 
 	init( ) {
@@ -51,6 +81,8 @@ class App {
 		this.controls.update();
 
 		window.addEventListener( 'resize', this.onWindowResize.bind(this) );
+		window.addEventListener( 'mousemove', this.onMouseMove.bind(this), false );
+		window.addEventListener( 'click', this.onMouseClick.bind(this), false );
 	
 		// include lights
 		const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
@@ -158,29 +190,6 @@ class App {
 
 			}
 		);
-		
-        // frame
-        this.gltfLoader.load( './data/picture_frame/scene.gltf', ( gltf ) => {
-			this.frame = gltf.scene;
-			this.frame.name = "frame";
-			this.frame.scale.set(0.01, 0.01, 0.01);
-			this.frame.position.set(-10, 2.5, -1);
-
-			gltf.scene.traverse(function (child) {
-				if (child.isMesh) {
-					child.castShadow = true;
-					child.receiveShadow = true;
-				}
-			});
-
-			this.scene.add( this.frame );
-
-			// let framecontrol = new TransformControls(this.camera, this.renderer.domElement);
-			// framecontrol.attach(this.frame);
-			// this.scene.add(framecontrol);
-			// framecontrol.addEventListener("dragging-changed", (e) => {this.controls.enabled = !e.value})
-		}
-        );
 
 		// jukebox
         this.gltfLoader.load( './data/record_player/scene.gltf', ( gltf ) => {
@@ -199,12 +208,12 @@ class App {
 			this.vinyl = this.jukebox.getObjectByName("Cylinder006_0");
 			this.vinyl.material.color = new THREE.Color("#e0c2c2");
 
-			const texture = new THREE.TextureLoader().load( './data/carol.png' );
+			const texture = this.textureLoader.load( './data/carol.png' );
 			texture.colorSpace = THREE.SRGBColorSpace;
 			this.vinyl.material.map = texture;
 
-			this.mixer2 = new THREE.AnimationMixer( this.jukebox );
-			this.mixer2.clipAction( gltf.animations[ 0 ] ).play();
+			this.mixerMusic = new THREE.AnimationMixer( this.jukebox );
+			this.mixerMusic.clipAction( gltf.animations[ 0 ] ).play();
 
 			this.scene.add( this.jukebox );
 
@@ -217,7 +226,37 @@ class App {
 		.then(data => {
 			this.projects = data;
 			console.log('Projects data loaded:', this.projects);
-			// You can now use this.projects in your application
+			
+			// populate with projects
+			for (let i = 0; i < this.projects.length; i++) {
+				const project = this.projects[i];
+				this.frames[i] = new THREE.Group();
+				
+				this.frames[i].name = project.title; // set name of frame to project title
+				this.frames[i].position.set(-7 + i*3.5, 3, -9.9); // change location of frame
+				
+				// create texture with project image					
+				this.textureLoader.load( project.image, (texture) => {
+					texture.colorSpace = THREE.SRGBColorSpace;
+					
+					// plane with image of its size
+					const planeGeometry = new THREE.PlaneGeometry();
+					// adjust plane size based on image aspect ratio
+					const imageAspect = texture.image.width / texture.image.height;
+					const planeHeight = 2; // desired height
+					const planeWidth = planeHeight * imageAspect;
+					planeGeometry.scale(planeWidth, planeHeight, 1);
+					
+					const planeMaterial = new THREE.MeshStandardMaterial({ map: texture, side: THREE.DoubleSide, toneMapped: false});
+					const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+					plane.position.set(0,0,0.1); // slightly in front of the frame
+					
+					this.frames[i].add(plane);
+				});
+
+				// add to scene
+				this.scene.add(this.frames[i]);
+			}
 		})
 		.catch(error => {
 			console.error('Error loading projects data:', error);
@@ -240,8 +279,29 @@ class App {
 
         requestAnimationFrame( this.animate.bind(this) );
 		
+		// raycaster
+		this.raycaster.setFromCamera( this.mouse, this.camera );
+		const intersects = this.raycaster.intersectObjects( this.frames, true );
+
+		// reset all frames
+		this.frames.forEach( (frame) => {
+			frame.children[0].material.emissive = new THREE.Color(0x000000);
+		});
+
+		// highlight intersected frame
+		for ( let i = 0; i < intersects.length; i++ ) {
+			this.intersectedFrame = intersects[i].object.parent;
+			this.intersectedFrame.children[0].material.emissive = new THREE.Color(0x222222);
+		}
+		// change cursor style
+		if ( intersects.length > 0 ) {
+			$('html, body').css('cursor', 'pointer');
+		} else {
+			$('html, body').css('cursor', 'default');
+			this.intersectedFrame = null;
+		}
 		const delta = this.clock.getDelta();
-		this.mixer2.update( delta );
+		this.mixerMusic.update( delta );
 		if (this.mixerAvatar) this.mixerAvatar.update( delta );
 		if (this.carol) {
 			this.carol.position.x = 2.5;

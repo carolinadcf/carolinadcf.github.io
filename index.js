@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import {TransformControls} from 'three/addons/controls/TransformControls.js';
-import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 
 class App {
 
@@ -30,9 +29,6 @@ class App {
 		this.intersectedFrame = null;
 		this.mainFrame = null;
 
-		// labels
-		this.labelRenderer = new CSS2DRenderer();
-
         // instantiate loaders
 		this.textureLoader = new THREE.TextureLoader();
         this.gltfLoader = new GLTFLoader();
@@ -50,6 +46,36 @@ class App {
 		if (this.intersectedFrame) {
 			const projectTitle = this.intersectedFrame.name;
 			this.showCard(projectTitle); // show more info about the project
+
+			// move camera to the front of the frame
+			const framePosition = new THREE.Vector3();
+			this.intersectedFrame.getWorldPosition(framePosition);
+			framePosition.x += 0.5; // offset to the side
+			const frameNormal = new THREE.Vector3(0, 0, 1);
+			frameNormal.applyQuaternion(this.intersectedFrame.quaternion);
+			// calculate zoom out factor according to frame size
+			const zoomOutFactor = this.intersectedFrame.scale.length() * 4;
+			const newCameraPosition = framePosition.clone().add(frameNormal.clone().multiplyScalar(zoomOutFactor)).add(new THREE.Vector3(0, 0, 0));
+
+			// animate camera movement
+			const duration = 1000; // in ms
+			const startPosition = this.camera.position.clone();
+			const startTime = performance.now();
+
+			const animateCamera = (time) => {
+				const elapsed = time - startTime;
+				const t = Math.min(elapsed / duration, 1); // normalized time [0,1]
+
+				this.camera.position.lerpVectors(startPosition, newCameraPosition, t);
+				this.controls.target.lerpVectors(this.controls.target, framePosition, t);
+				this.controls.update();
+
+				if (t < 1) {
+					requestAnimationFrame(animateCamera);
+				}
+			};
+
+			requestAnimationFrame(animateCamera);
 		}
 	}
 
@@ -236,13 +262,6 @@ class App {
 			console.error('Error loading projects data:', error);
 		});
 
-		// set up label renderer
-		this.labelRenderer.setSize( window.innerWidth, window.innerHeight );
-		this.labelRenderer.domElement.style.position = 'absolute';
-		this.labelRenderer.domElement.style.top = '0px';
-		this.labelRenderer.domElement.style.pointerEvents = 'none'; // make labels unclickable
-		document.body.appendChild( this.labelRenderer.domElement );
-
 	} // end init
 
 	onWindowResize() {
@@ -251,7 +270,6 @@ class App {
 		this.camera.updateProjectionMatrix();
 
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
-		this.labelRenderer.setSize( window.innerWidth, window.innerHeight );
 
 		this.animate();
 
@@ -293,7 +311,6 @@ class App {
 		this.controls.update();
 		
 		this.renderer.render( this.scene, this.camera );
-		this.labelRenderer.render( this.scene, this.camera ); // Render the label
 	}
 
 	addLights() {
@@ -316,26 +333,6 @@ class App {
 	showCard(projectTitle) {
 		const project = this.projects.find(p => p.title === projectTitle);
 		if (!project) return;
-
-		// remove existing labels
-		this.frames.forEach( (frame) => {
-			const existingLabel = frame.getObjectByName('label');
-			if (existingLabel) {
-				frame.remove(existingLabel);
-			}
-		});
-
-		// create label
-		const div = document.createElement( 'div' );
-		div.className = 'label';
-		div.textContent = projectTitle;
-		div.style.marginTop = '-1em';
-		
-		const label = new CSS2DObject( div );
-		label.position.set(0, 1, 0);
-		label.name = 'label';
-		this.intersectedFrame.add( label );
-
 	}
 }
 

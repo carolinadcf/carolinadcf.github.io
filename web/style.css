@@ -1,21 +1,21 @@
 /* Define CSS variables for color themes */
 :root {
-    --primary-bg-light: #f4f4f9;
-    --primary-bg-dark: #1a1a2e;
-    --primary-color-light: #4c6ef5;
-    --primary-color-dark: #82aaff;
+    --primary-bg-light: #e3d4c9;
+    --primary-bg-dark: #967d53;
+    --primary-color-light: #c09f70;
+    --primary-color-dark: #e3d4c9;
     --secondary-bg-light: #ffffff;
-    --secondary-bg-dark: #393951;
-    --text-light: #333333;
-    --text-dark: #f4f4f9;
-    --secondary-text-light: #f4f4f9;
+    --secondary-bg-dark: #514739;
+    --text-light: #816747;
+    --text-dark: #e3d4c9;
+    --secondary-text-light: #e3d4c9;
     --secondary-text-dark: #333333;
     --border-light: #dcdcdc;
     --border-dark: #444444;
-    --button-bg-light: #4c6ef5;
-    --button-bg-dark: #5e77f3;
-    --button-hover-light: #3352cc;
-    --button-hover-dark: #435cb0;
+    --button-bg-light: #c09f70;
+    --button-bg-dark: #c09f70;
+    --button-hover-light: #a07c50;
+    --button-hover-dark: #bfa67a;
 }
 
 /* Light Mode */

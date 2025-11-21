@@ -193,3 +193,49 @@ body {
         transform-origin: bottom left;
     }
 }
+
+/* UI */
+.main-ui {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 10;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.scene-ui {
+    position: absolute;
+    bottom: 10vh;
+    right: 10vw;
+    z-index: 5;
+}
+
+.about-me-button,
+.visit-link-button,
+.close-button {
+    font-family: 'Didot', serif;
+    font-size: 1.2em;
+    color: var(--secondary-color);
+    background-color: var(--primary-color);
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.visit-link-button {
+    display: none;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.close-button {
+    display: none;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 102;
+}

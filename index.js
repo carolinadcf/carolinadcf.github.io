@@ -35,50 +35,6 @@ class App {
 
 	}
 
-	onMouseMove( event ) {
-		// calculate mouse position in normalized device coordinates
-		// (-1 to +1) for both components
-		this.mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-		this.mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
-	}
-
-	onMouseClick( event ) {
-		if (this.intersectedFrame) {
-			const projectTitle = this.intersectedFrame.name;
-			this.showCard(projectTitle); // show more info about the project
-
-			// move camera to the front of the frame
-			const framePosition = new THREE.Vector3();
-			this.intersectedFrame.getWorldPosition(framePosition);
-			framePosition.x += 0.5; // offset to the side
-			const frameNormal = new THREE.Vector3(0, 0, 1);
-			frameNormal.applyQuaternion(this.intersectedFrame.quaternion);
-			// calculate zoom out factor according to frame size
-			const zoomOutFactor = this.intersectedFrame.scale.length() * 4;
-			const newCameraPosition = framePosition.clone().add(frameNormal.clone().multiplyScalar(zoomOutFactor)).add(new THREE.Vector3(0, 0, 0));
-
-			// animate camera movement
-			const duration = 1000; // in ms
-			const startPosition = this.camera.position.clone();
-			const startTime = performance.now();
-
-			const animateCamera = (time) => {
-				const elapsed = time - startTime;
-				const t = Math.min(elapsed / duration, 1); // normalized time [0,1]
-
-				this.camera.position.lerpVectors(startPosition, newCameraPosition, t);
-				this.controls.target.lerpVectors(this.controls.target, framePosition, t);
-				this.controls.update();
-
-				if (t < 1) {
-					requestAnimationFrame(animateCamera);
-				}
-			};
-
-			requestAnimationFrame(animateCamera);
-		}
-	}
-
 	init( ) {
 		// scene
 		this.scene = new THREE.Scene();
@@ -106,9 +62,14 @@ class App {
 		this.controls.maxPolarAngle = Math.PI / 2;
 		this.controls.update();
 
+		// event listeners
 		window.addEventListener( 'resize', this.onWindowResize.bind(this) );
 		window.addEventListener( 'mousemove', this.onMouseMove.bind(this), false );
 		window.addEventListener( 'click', this.onMouseClick.bind(this), false );
+		this.controls.addEventListener( 'change', () => {
+			var link = document.getElementById('visit-link-button');
+			link.style.display = 'none';
+		} );
 	
 		this.addLights();
 
@@ -231,9 +192,18 @@ class App {
 			for (let i = 0; i < this.projects.length; i++) {
 				const project = this.projects[i];
 				this.frames[i] = new THREE.Group();
-				
 				this.frames[i].name = project.title; // set name of frame to project title
-				this.frames[i].position.set(-7 + i*3.5, 3, -9.9); // change location of frame
+				// place in different walls
+				// left wall
+				if (i < 3) {
+					this.frames[i].position.set(-9.9, 3, 4 - i*4);
+					this.frames[i].rotation.y = Math.PI / 2;
+				}
+				// front wall
+				else if (i < 6) {
+					this.frames[i].position.set(-2 + (i-3)*4, 3, -9.9);
+				}
+				// this.frames[i].position.set(-7 + i*4, 3, -9.9); // change location of frame
 				
 				// create texture with project image					
 				this.textureLoader.load( project.image, (texture) => {
@@ -249,9 +219,88 @@ class App {
 					
 					const planeMaterial = new THREE.MeshStandardMaterial({ map: texture, side: THREE.DoubleSide, toneMapped: false});
 					const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-					plane.position.set(0,0,0.1); // slightly in front of the frame
-					
 					this.frames[i].add(plane);
+					
+					// back plane (frame)
+					const backGeometry = new THREE.PlaneGeometry();
+					backGeometry.scale(planeWidth + 0.1, planeHeight + 0.1, 1);
+					const backMaterial = new THREE.MeshStandardMaterial({ color: 0x000000, side: THREE.DoubleSide });
+					const backPlane = new THREE.Mesh(backGeometry, backMaterial);
+					backPlane.position.z = -0.01; // slightly behind the image
+					this.frames[i].add(backPlane);
+
+					// card info
+					const cardGeometry = new THREE.PlaneGeometry();
+					cardGeometry.scale(0.7, 0.5, 1);
+					
+					// add text info to card using canvas texture
+					const canvas = document.createElement('canvas');
+					const context = canvas.getContext('2d');
+					// white background
+					context.fillStyle = 'white';
+					context.fillRect(0, 0, canvas.width, canvas.height);
+					context.fillStyle = 'black';
+					// project title
+					context.font = "24px Didot";
+					context.fillText(project.title, 20, 40);
+					// description - dont overflow
+					context.font = "16px Didot";
+					const descriptionLines = [];
+					const words = project.description.split(' ');
+					let line = '';
+					words.forEach((word) => {
+						const testLine = line + word + ' ';
+						const metrics = context.measureText(testLine);
+						const testWidth = metrics.width;
+						if (testWidth > canvas.width - 40 && line !== '') {
+							descriptionLines.push(line);
+							line = word + ' ';
+						} else {
+							line = testLine;
+						}
+					});
+					descriptionLines.push(line);
+					// draw each line
+					descriptionLines.forEach((descLine, index) => {
+						context.fillText(descLine, 20, 70 + index * 20);
+					});
+					
+					// organization
+					context.font = "14px Didot";
+					context.fillText(`${project.organization}`, 20, canvas.height - 40);
+
+					// tags
+					context.font = "12px Didot";
+					const tagsText = project.tags.join(', ');
+					context.fillText(`[${tagsText}]`, 20, canvas.height - 20);
+
+					// start and end date - bottom right
+					context.font = "12px Didot";
+					// if date undefined don't show
+					if (!project.startDate && !project.endDate) {
+						// do nothing
+					}
+					else {
+						if (!project.endDate) project.endDate = "";
+						if (!project.startDate) project.startDate = "";
+						context.fillText(`(${project.startDate} - ${project.endDate})`, canvas.width - 150, canvas.height - 20);
+					}					
+
+					// create texture
+					const textureCard = new THREE.CanvasTexture(canvas);
+					textureCard.needsUpdate = true;
+
+					var cardMaterial = new THREE.MeshBasicMaterial({
+						color: 0xffffff,
+						map: textureCard,
+						side: THREE.DoubleSide,
+						toneMapped: false
+					});
+
+					const cardPlane = new THREE.Mesh(cardGeometry, cardMaterial);
+					// bottom right of the frame
+					cardPlane.position.set(planeWidth/2 + 0.6, -planeHeight/2 + 0.25, 0.01);
+					this.frames[i].add(cardPlane);
 				});
 
 				// add to scene
@@ -285,13 +334,17 @@ class App {
 
 		// reset all frames
 		this.frames.forEach( (frame) => {
-			frame.children[0].material.emissive = new THREE.Color(0x000000);
+			frame.children[1].material.emissive = new THREE.Color(0x000000);
+			frame.children[1].material.color = new THREE.Color(0x000000);
 		});
 
 		// highlight intersected frame
 		for ( let i = 0; i < intersects.length; i++ ) {
+			// highlight border of frame
 			this.intersectedFrame = intersects[i].object.parent;
-			this.intersectedFrame.children[0].material.emissive = new THREE.Color(0x222222);
+			this.intersectedFrame.children[1].material.color = new THREE.Color(0xffffff);
+			this.intersectedFrame.children[1].material.emissive = new THREE.Color(0xffffff);
+			
 		}
 		// change cursor style
 		if ( intersects.length > 0 ) {
@@ -330,9 +383,61 @@ class App {
 		this.lights.push(ambientLight, dirLight);
 	}
 
+	onMouseMove( event ) {
+		// calculate mouse position in normalized device coordinates
+		// (-1 to +1) for both components
+		this.mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+		this.mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+	}
+
+	onMouseClick( event ) {
+		if (this.intersectedFrame) {
+			const projectTitle = this.intersectedFrame.name;
+			this.showCard(projectTitle); // show more info about the project
+
+			// move camera to the front of the frame
+			const framePosition = new THREE.Vector3();
+			this.intersectedFrame.getWorldPosition(framePosition);
+			framePosition.x += 0.5; // offset to the side
+			const frameNormal = new THREE.Vector3(0, 0, 1);
+			frameNormal.applyQuaternion(this.intersectedFrame.quaternion);
+			// calculate zoom out factor according to frame size
+			const zoomOutFactor = this.intersectedFrame.scale.length() * 4;
+			const newCameraPosition = framePosition.clone().add(frameNormal.clone().multiplyScalar(zoomOutFactor)).add(new THREE.Vector3(0, 0, 0));
+
+			// animate camera movement
+			const duration = 1000; // in ms
+			const startPosition = this.camera.position.clone();
+			const startTime = performance.now();
+
+			const animateCamera = (time) => {
+				const elapsed = time - startTime;
+				const t = Math.min(elapsed / duration, 1); // normalized time [0,1]
+
+				this.camera.position.lerpVectors(startPosition, newCameraPosition, t);
+				this.controls.target.lerpVectors(this.controls.target, framePosition, t);
+				this.controls.update();
+
+				if (t < 1) {
+					requestAnimationFrame(animateCamera);
+				}
+				var link = document.getElementById('visit-link-button');
+				link.style.display = 'inline-block';
+			};
+
+			requestAnimationFrame(animateCamera);
+		}
+	}
+
 	showCard(projectTitle) {
 		const project = this.projects.find(p => p.title === projectTitle);
 		if (!project) return;
+
+		// add clickable functional link
+		var link = document.getElementById('visit-link-button');
+		link.href = project.link;
+		link.target = '_blank';
+		link.style.display = 'inline-block';
 	}
 }
 

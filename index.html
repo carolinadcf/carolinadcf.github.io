@@ -3,7 +3,7 @@
 <head>
     <title>Carol's Portfolio</title>
     <link rel="icon" type="image/x-icon" href="./data/carol.png">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
 
     <link rel="stylesheet" type="text/css" href="./style.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -56,6 +56,16 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <div class="main-ui">
+        <!-- about me -->
+        <h2 id="about-me-button" class="about-me-button">About Me</h2>
+    </div>
+    <h2 id="close-button" class="close-button">Close</h2>
+    <div class="scene-ui">
+        <!-- visit link button -->
+        <a id="visit-link-button" class="visit-link-button">Visit →</a>
     </div>
 
     <script type="module">
@@ -113,6 +123,49 @@
         } else {
             console.log("Desktop device detected");
         }
+    </script>
+
+    <!-- about me button -->
+    <script>
+        // show ticket preloader with about me info
+        document.getElementById('about-me-button').addEventListener('click', function () {
+            console.log('About me button clicked');
+            const preloader = document.getElementById('preloader');
+            preloader.classList.remove('preloader-animated');
+            const preloaderStub = document.getElementById('preloader-stub');
+            preloaderStub.classList.remove('stub-animated');
+
+            // show close button
+            const closeButton = document.getElementById('close-button');
+            closeButton.style.display = 'block';
+
+            // freeze 3D scene interaction when about me is open
+            const canvas = document.querySelector('canvas');
+            if (canvas) {
+                canvas.style.pointerEvents = 'none';
+            }
+        });
+
+        // close button
+        document.getElementById('close-button').addEventListener('click', function () {
+            console.log('Close button clicked');
+            // hide ticket preloader with about me info
+            const preloader = document.getElementById('preloader');
+            preloader.classList.add('preloader-animated');
+            const preloaderStub = document.getElementById('preloader-stub');
+            preloaderStub.classList.add('stub-animated');
+
+            // hide close button
+            const closeButton = document.getElementById('close-button');
+            closeButton.style.display = 'none';
+
+            // enable 3D scene interaction when about me is closed
+            const canvas = document.querySelector('canvas');
+            if (canvas) {
+                canvas.style.pointerEvents = 'auto';
+            }
+        });
+
     </script>
 
     <script src="./index.js" type="module"></script>

@@ -3,7 +3,7 @@
         "title": "Animics",
         "link": "https://animics.gti.upf.edu/",
         "organization": "GTI-UPF",
-        "description": "Animics is a web-based platform for creating and sharing interactive 3D animations.",
+        "description": "",
         "image": "./data/projects/animics.png",
         "tags": [
             "WebGL",

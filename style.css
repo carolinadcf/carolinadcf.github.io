@@ -295,7 +295,9 @@ body {
 
 .page {
     width: 30vw;
+    max-width: 400px;
     height: 44vw;
+    max-height: 575px;
     float: left;
     margin-bottom: 0.5em;
     background: left top no-repeat;
@@ -308,7 +310,9 @@ body {
 
 .book .pages {
     width: 60vw;
+    max-width: 800px;
     height: 44vw;
+    max-height: 575px;
     position: relative;
     transform-style: preserve-3d;
     backface-visibility: hidden;
@@ -322,7 +326,9 @@ body {
     position: absolute;
     top: 0;
     width: 30vw;
+    max-width: 400px;
     height: 44vw;
+    max-height: 575px;
     transform-origin: 0 0;
     transition: transform 1.4s;
     backface-visibility: hidden;

@@ -60,13 +60,47 @@
 
     <div class="main-ui">
         <!-- about me -->
-        <h2 id="about-me-button" class="about-me-button">About Me</h2>
+        <h2 id="about-me-button" class="button">About Me</h2>
+        <h2 id="ticket-button" class="button">Show Ticket</h2>
     </div>
     <h2 id="close-button" class="close-button">Close</h2>
     <div class="scene-ui">
         <!-- visit link button -->
         <a id="visit-link-button" class="visit-link-button">Visit →</a>
     </div>
+
+    <h2 id="close-about-me" class="close-button">Close</h2>
+
+    <section id="about-me-section" class="about-me-section">
+        <div class="book">
+            <div id="pages" class="pages">
+                <div class="cover page">
+                    <h1>Open Me, <br>please!</h1>
+                </div>
+                <div class="cover page"></div>
+                <div class="page">
+                    <p>Welcome to my portfolio website! Here, you'll find a collection of my projects, skills, and
+                        experiences. Feel free to explore and learn more about me and my work.</p>
+                    <p>I am an open book!</p>
+                </div>
+                <div class="page">
+                    <h2>About Me</h2>
+                    <p>Hi! I'm Carolina, an AV Systems Engineer based in Barcelona.</p>
+                    <p style="margin-bottom: 0;">That's me :)</p>
+                    <img src="./data/book/arrow.png" alt="Arrow pointing to the right"
+                        style="max-width: 20%; margin-left: 10%;">
+                    <img src="./data/carol.png" alt="Carol's photo"
+                        style="max-width: 80%; position: absolute; right: 0; bottom: 0;">
+                </div>
+                <div class="page"></div>
+                <div class="page"></div>
+                <div class="page"></div>
+                <div class="page"></div>
+                <div class="cover page"></div>
+                <div class="cover page"></div>
+            </div>
+        </div>
+    </section>
 
     <script type="module">
         // get the last commit date
@@ -123,49 +157,6 @@
         } else {
             console.log("Desktop device detected");
         }
-    </script>
-
-    <!-- about me button -->
-    <script>
-        // show ticket preloader with about me info
-        document.getElementById('about-me-button').addEventListener('click', function () {
-            console.log('About me button clicked');
-            const preloader = document.getElementById('preloader');
-            preloader.classList.remove('preloader-animated');
-            const preloaderStub = document.getElementById('preloader-stub');
-            preloaderStub.classList.remove('stub-animated');
-
-            // show close button
-            const closeButton = document.getElementById('close-button');
-            closeButton.style.display = 'block';
-
-            // freeze 3D scene interaction when about me is open
-            const canvas = document.querySelector('canvas');
-            if (canvas) {
-                canvas.style.pointerEvents = 'none';
-            }
-        });
-
-        // close button
-        document.getElementById('close-button').addEventListener('click', function () {
-            console.log('Close button clicked');
-            // hide ticket preloader with about me info
-            const preloader = document.getElementById('preloader');
-            preloader.classList.add('preloader-animated');
-            const preloaderStub = document.getElementById('preloader-stub');
-            preloaderStub.classList.add('stub-animated');
-
-            // hide close button
-            const closeButton = document.getElementById('close-button');
-            closeButton.style.display = 'none';
-
-            // enable 3D scene interaction when about me is closed
-            const canvas = document.querySelector('canvas');
-            if (canvas) {
-                canvas.style.pointerEvents = 'auto';
-            }
-        });
-
     </script>
 
     <script src="./index.js" type="module"></script>

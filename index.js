@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import {TransformControls} from 'three/addons/controls/TransformControls.js';
+import { initUI, UIState } from './ui.js';
 
 class App {
 
@@ -311,6 +312,9 @@ class App {
 			console.error('Error loading projects data:', error);
 		});
 
+		// initialize UI
+		initUI();
+
 	} // end init
 
 	onWindowResize() {
@@ -329,30 +333,35 @@ class App {
         requestAnimationFrame( this.animate.bind(this) );
 		
 		// raycaster
-		this.raycaster.setFromCamera( this.mouse, this.camera );
-		const intersects = this.raycaster.intersectObjects( this.frames, true );
+		if (UIState.interactionEnabled)	{
 
-		// reset all frames
-		this.frames.forEach( (frame) => {
-			frame.children[1].material.emissive = new THREE.Color(0x000000);
-			frame.children[1].material.color = new THREE.Color(0x000000);
-		});
-
-		// highlight intersected frame
-		for ( let i = 0; i < intersects.length; i++ ) {
-			// highlight border of frame
-			this.intersectedFrame = intersects[i].object.parent;
-			this.intersectedFrame.children[1].material.color = new THREE.Color(0xffffff);
-			this.intersectedFrame.children[1].material.emissive = new THREE.Color(0xffffff);
+			this.raycaster.setFromCamera( this.mouse, this.camera );
+			const intersects = this.raycaster.intersectObjects( this.frames, true );
 			
+			// reset all frames
+			this.frames.forEach( (frame) => {
+				frame.children[1].material.emissive = new THREE.Color(0x000000);
+				frame.children[1].material.color = new THREE.Color(0x000000);
+			});
+			
+			// highlight intersected frame
+			for ( let i = 0; i < intersects.length; i++ ) {
+				// highlight border of frame
+				this.intersectedFrame = intersects[i].object.parent;
+				this.intersectedFrame.children[1].material.color = new THREE.Color(0xffffff);
+				this.intersectedFrame.children[1].material.emissive = new THREE.Color(0xffffff);
+				
+			}
+			
+			// change cursor style
+			if ( intersects.length > 0 ) {
+				$('html, body').css('cursor', 'pointer');
+			} else {
+				$('html, body').css('cursor', 'default');
+				this.intersectedFrame = null;
+			}
 		}
-		// change cursor style
-		if ( intersects.length > 0 ) {
-			$('html, body').css('cursor', 'pointer');
-		} else {
-			$('html, body').css('cursor', 'default');
-			this.intersectedFrame = null;
-		}
+		
 		const delta = this.clock.getDelta();
 		if (this.mixerMusic) this.mixerMusic.update( delta );
 		if (this.mixerAvatar) this.mixerAvatar.update( delta );

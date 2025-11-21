@@ -1,4 +1,3 @@
-/* pre-loader */
 body {
     background: #f2f2f2;
     font-family: 'Didot', serif;
@@ -12,6 +11,7 @@ body {
     --terciary-color: #c09f70;
 }
 
+/* pre-loader */
 .preloader {
     background-color: rgba(51, 51, 51, 0.5);
     position: absolute;
@@ -212,7 +212,7 @@ body {
     z-index: 5;
 }
 
-.about-me-button,
+.button,
 .visit-link-button,
 .close-button {
     font-family: 'Didot', serif;
@@ -238,4 +238,183 @@ body {
     top: 20px;
     right: 20px;
     z-index: 102;
+}
+
+/* about me section */
+#about-me-section {
+    display: none;
+    background-color: rgba(51, 51, 51, 0.5);
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    font-size: larger;
+
+    color: var(--secondary-color);
+    padding: 20px;
+    overflow-y: auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+
+}
+
+/* book */
+/* https://codepen.io/captain_anonym0us/pen/ybVbpv */
+.book {
+    transition: opacity 0.4s 0.2s;
+    perspective: 250vw;
+    margin-top: 10vh;
+    /* center pages */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    p,
+    h2 {
+        margin: 10%;
+        text-align: left;
+    }
+
+    h1 {
+        text-align: center;
+        justify-content: center;
+    }
+
+}
+
+.cover {
+    background-color: var(--secondary-color) !important;
+    float: left;
+    margin-bottom: 0.5em;
+    padding-top: 3em;
+    background: left top no-repeat;
+    background-size: cover;
+    color: var(--primary-color);
+}
+
+.page {
+    width: 30vw;
+    height: 44vw;
+    float: left;
+    margin-bottom: 0.5em;
+    background: left top no-repeat;
+    background-size: cover;
+}
+
+.page:nth-child(even) {
+    clear: both;
+}
+
+.book .pages {
+    width: 60vw;
+    height: 44vw;
+    position: relative;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+    border-radius: 8px;
+}
+
+.book .page {
+    float: none;
+    clear: none;
+    margin: 0;
+    position: absolute;
+    top: 0;
+    width: 30vw;
+    height: 44vw;
+    transform-origin: 0 0;
+    transition: transform 1.4s;
+    backface-visibility: hidden;
+    transform-style: preserve-3d;
+    cursor: pointer;
+    user-select: none;
+    background-color: var(--primary-color);
+    box-shadow: 0 0 0 1px var(--secondary-color);
+}
+
+.book .page:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0);
+    transition: background 0.7s;
+    z-index: 2;
+}
+
+.book .page:nth-child(odd) {
+    pointer-events: all;
+    transform: rotateY(0deg);
+    right: 0;
+    border-radius: 0 8px 8px 0;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, .15) 0%, rgba(0, 0, 0, 0) 10%);
+}
+
+.book .page:nth-child(odd):hover {
+    transform: rotateY(-15deg);
+}
+
+.book .page:nth-child(odd):hover:before {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.book .page:nth-child(odd):before {
+    background: rgba(0, 0, 0, 0);
+}
+
+.book .page:nth-child(even) {
+    pointer-events: none;
+    transform: rotateY(180deg);
+    transform-origin: 100% 0;
+    left: 0;
+    border-radius: 8px 0 0 8px;
+    border-color: black;
+    background-image: linear-gradient(to left, rgba(0, 0, 0, .12) 0%, rgba(0, 0, 0, 0) 10%);
+}
+
+.book .page:nth-child(even):before {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.book .page.grabbing {
+    transition: none;
+}
+
+.book .page.flipped:nth-child(odd) {
+    pointer-events: none;
+    transform: rotateY(-180deg);
+}
+
+.book .page.flipped:nth-child(odd):before {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.book .page.flipped:nth-child(even) {
+    pointer-events: all;
+    transform: rotateY(0deg);
+}
+
+.book .page.flipped:nth-child(even):hover {
+    transform: rotateY(15deg);
+}
+
+.book .page.flipped:nth-child(even):hover:before {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.book .page.flipped:nth-child(even):before {
+    background: rgba(0, 0, 0, 0);
+}
+
+*,
+* :before,
+*:after {
+    box-sizing: border-box;
+}
+
+.page:nth-child(odd) {
+    background-position: right top;
 }

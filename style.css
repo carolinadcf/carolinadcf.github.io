@@ -51,11 +51,11 @@ body {
 
 .check {
     background: var(--primary-color);
-    height: 20vh;
-    min-height: 250px;
+    height: 22vh;
+    min-height: 275px;
     width: 50vw;
     max-width: 750px;
-    min-width: 500px;
+    min-width: 550px;
     padding: 20px;
     position: relative;
 }
@@ -127,11 +127,11 @@ body {
 
 .stub {
     background: var(--secondary-color);
-    height: 20vh;
-    min-height: 250px;
-    width: 20vw;
-    max-width: 250px;
-    min-width: 250px;
+    height: 22vh;
+    min-height: 275px;
+    width: 22vw;
+    max-width: 275px;
+    min-width: 275px;
     color: var(--primary-color);
     padding: 20px;
     position: relative;

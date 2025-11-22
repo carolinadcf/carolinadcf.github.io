@@ -276,7 +276,8 @@ body {
     align-items: center;
 
     p,
-    h2 {
+    h2,
+    ul {
         margin: 10%;
         text-align: left;
     }

@@ -266,6 +266,10 @@ body {
 
 }
 
+.handwritten {
+    font-family: 'Nanum Pen Script';
+}
+
 /* book */
 /* https://codepen.io/captain_anonym0us/pen/ybVbpv */
 .book {
@@ -276,12 +280,15 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    text-align: left;
 
     p,
-    h2,
     ul {
-        margin: 10%;
-        text-align: left;
+        margin: 5% 10% 5% 10%;
+    }
+
+    h2 {
+        margin: 10% 10% 5% 10%;
     }
 
     h1 {
@@ -431,4 +438,15 @@ body {
 
 .page:nth-child(odd) {
     background-position: right top;
+}
+
+/* personalize pages */
+.coffee-page {
+    /* override page */
+    background-image: url('./data/book/coffee.png'), linear-gradient(to right, rgba(0, 0, 0, .15) 0%, rgba(0, 0, 0, 0) 10%) !important;
+    background-repeat: no-repeat;
+    background-size: 40% auto, cover !important;
+    background-position: 120% 110%, right top !important;
+    /* filter coffee image only */
+    background-blend-mode: multiply, normal !important;
 }

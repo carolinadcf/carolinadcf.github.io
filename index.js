@@ -415,6 +415,8 @@ class App {
 		this.camera.updateProjectionMatrix();
 
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
+		this.effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight);
+		this.composer.setSize( window.innerWidth, window.innerHeight );
 
 		this.animate();
 
@@ -423,81 +425,15 @@ class App {
     animate() {
 
         requestAnimationFrame( this.animate.bind(this) );
-		
-		// raycaster
-		if (UIState.interactionEnabled)	{
-
-			this.raycaster.setFromCamera( this.mouse, this.camera );
-			this.selectedObjects = [ ];
-
-			// frame interaction
-			const intersects = this.raycaster.intersectObjects( this.frames, true );
-			
-			// reset all frames
-			this.frames.forEach( (frame) => {
-				frame.children[1].material.emissive = new THREE.Color(0x000000);
-				frame.children[1].material.color = new THREE.Color(0x000000);
-			});
-			
-			// highlight intersected frame
-			for ( let i = 0; i < intersects.length; i++ ) {
-				// highlight border of frame
-				this.intersectedFrame = intersects[i].object.parent;
-				this.intersectedFrame.children[1].material.color = new THREE.Color(0xffffff);
-				this.intersectedFrame.children[1].material.emissive = new THREE.Color(0xffffff);
 				
-			}
-			
-			// change cursor style
-			if ( intersects.length > 0 ) { $('html, body').css('cursor', 'pointer'); }
-			else {
-				$('html, body').css('cursor', 'default');
-				this.intersectedFrame = null;
-			}
-			
-			// my avatar interaction
-			if (this.carol) {
-				const intersectsAvatar = this.raycaster.intersectObject( this.carol, true );
-				if (intersectsAvatar.length > 0) {
-					// play wave animation
-					if (this.currentAction !== 'wave') {
-						this.swapAnimations('wave');
-					}
-					// outline avatar
-					this.selectedObjects = [ this.carol ];
-				}
-			}
-
-			// record player interaction
-			if (this.jukebox) {
-				const intersectsJukebox = this.raycaster.intersectObject( this.jukebox, true );
-				// this.selectedObjects = [ ];
-				if (intersectsJukebox.length > 0) {
-					// start vinyl rotation animation
-					if (this.mixerMusic) {
-						this.mixerMusic.timeScale = 1.0;
-						if (!this.sound.isPlaying) this.sound.play(); // if sound not playing, play
-					}
-					// outline jukebox
-					this.selectedObjects = [ this.jukebox ];
-				}
-				else if (!this.selectedJukebox) {
-					// stop vinyl rotation animation
-					if (this.mixerMusic) {
-						this.mixerMusic.timeScale = 0;
-						if (this.sound.isPlaying) this.sound.pause(); // if sound playing, pause
-					}
-				}
-			}
-			this.outlinePass.selectedObjects = this.selectedObjects;
-		}
-		
 		const delta = this.clock.getDelta();
 		if (this.mixerMusic) this.mixerMusic.update( delta );
 		if (this.mixerAvatar) this.mixerAvatar.update( delta );
 		if (this.carol) {
 			this.carol.position.x = 2.5;
 			this.carol.scale.set(1.65,1.65,1.65);
+			// always face camera only on y axis
+			this.carol.lookAt(new THREE.Vector3(this.camera.position.x, this.carol.position.y, this.camera.position.z));
 		}
 		
 		this.controls.update();
@@ -528,6 +464,9 @@ class App {
 		// (-1 to +1) for both components
 		this.mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
 		this.mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+		// raycaster
+		if (UIState.interactionEnabled)	this.checkIntersections();
 	}
 
 	onMouseClick( event ) {
@@ -565,8 +504,84 @@ class App {
 					this.sound.play();
 					this.mixerMusic.timeScale = 1.0; // resume vinyl
 				}
+
+				// move camera to top right corner of jukebox
+				const jukeboxPosition = new THREE.Vector3();
+				this.jukebox.getWorldPosition(jukeboxPosition);
+				jukeboxPosition.y += 0.75;
+				jukeboxPosition.z += 0.25;
+				const newCameraPosition = jukeboxPosition.clone().add(new THREE.Vector3(2, 1, 2));
+
+				// animate camera movement
+				this.cameraCinematicMove(newCameraPosition, jukeboxPosition, 1000, () => {
+					document.getElementById('back-button').style.display = 'inline-block';
+				});
 			}
 		}
+	}
+
+	checkIntersections() {
+		this.raycaster.setFromCamera( this.mouse, this.camera );
+		this.selectedObjects = [ ];
+
+		// frame interaction
+		const intersects = this.raycaster.intersectObjects( this.frames, true );
+		
+		// reset all frames
+		this.frames.forEach( (frame) => {
+			frame.children[1].material.emissive = new THREE.Color(0x000000);
+			frame.children[1].material.color = new THREE.Color(0x000000);
+		});
+		
+		// highlight intersected frame
+		for ( let i = 0; i < intersects.length; i++ ) {
+			// highlight border of frame
+			this.intersectedFrame = intersects[i].object.parent;
+			this.intersectedFrame.children[1].material.color = new THREE.Color(0xffffff);
+			this.intersectedFrame.children[1].material.emissive = new THREE.Color(0xffffff);
+		}
+		
+		// change cursor style
+		if ( intersects.length > 0 ) { $('html, body').css('cursor', 'pointer'); }
+		else {
+			$('html, body').css('cursor', 'default');
+			this.intersectedFrame = null;
+		}
+		
+		// my avatar interaction
+		if (this.carol) {
+			const intersectsAvatar = this.raycaster.intersectObject( this.carol, true );
+			if (intersectsAvatar.length > 0) {
+				// play wave animation
+				if (this.currentAction !== 'wave') {
+					this.swapAnimations('wave');
+				}
+				// outline avatar
+				this.selectedObjects = [ this.carol ];
+			}
+		}
+
+		// record player interaction
+		if (this.jukebox) {
+			const intersectsJukebox = this.raycaster.intersectObject( this.jukebox, true );
+			if (intersectsJukebox.length > 0) {
+				// start vinyl rotation animation
+				if (this.mixerMusic) {
+					this.mixerMusic.timeScale = 1.0;
+					if (!this.sound.isPlaying) this.sound.play(); // if sound not playing, play
+				}
+				// outline jukebox
+				this.selectedObjects = [ this.jukebox ];
+			}
+			else if (!this.selectedJukebox) {
+				// stop vinyl rotation animation
+				if (this.mixerMusic) {
+					this.mixerMusic.timeScale = 0;
+					if (this.sound.isPlaying) this.sound.pause(); // if sound playing, pause
+				}
+			}
+		}
+		this.outlinePass.selectedObjects = this.selectedObjects;
 	}
 
 	showCard(projectTitle) {
@@ -591,8 +606,8 @@ class App {
 		this.currentAction = toPlay;
 	}
 
+	// animate camera movement
 	cameraCinematicMove(newPosition, newTarget, duration = 1000, callback = null) {
-		// animate camera movement
 		const startPosition = this.camera.position.clone();
 		const startTarget = this.controls.target.clone();
 		const startTime = performance.now();

@@ -29,10 +29,12 @@ class App {
 		this.mouse = new THREE.Vector2();
 		this.intersectedFrame = null;
 		this.mainFrame = null;
+		this.selectedJukebox = false;
 
         // instantiate loaders
 		this.textureLoader = new THREE.TextureLoader();
         this.gltfLoader = new GLTFLoader();
+		this.audioLoader = new THREE.AudioLoader();
 
 		// animation mixers
 		this.mixerMusic = null;
@@ -46,6 +48,11 @@ class App {
 			wave: {weight: 0}
 		};
 
+		// positional audio for record player
+		this.jukebox = null;
+		this.vinyl = null;
+		this.sound = null;
+		this.listener = new THREE.AudioListener();
 	}
 
 	init( ) {
@@ -83,7 +90,8 @@ class App {
 			var link = document.getElementById('visit-link-button');
 			link.style.display = 'none';
 		} );
-	
+		
+		// lights
 		this.addLights();
 
         // museum
@@ -208,8 +216,21 @@ class App {
 
 			this.mixerMusic = new THREE.AnimationMixer( this.jukebox );
 			this.mixerMusic.clipAction( gltf.animations[ 0 ] ).play();
+			this.mixerMusic.timeScale = 0; // start paused
 
 			this.scene.add( this.jukebox );
+
+			// sound for jukebox
+			this.sound = new THREE.PositionalAudio( this.listener );
+			this.camera.add( this.listener );
+			
+			// https://freesound.org/people/CollectionOfMemories/sounds/647591/
+			this.audioLoader.load( './data/sounds/lofi.wav', ( buffer ) => {
+				this.sound.setBuffer( buffer );
+				this.sound.setLoop( true );
+				this.sound.setVolume( 0.5 );
+			});
+			this.jukebox.add( this.sound );
 
             }
         );
@@ -386,6 +407,14 @@ class App {
 				this.intersectedFrame.children[1].material.emissive = new THREE.Color(0xffffff);
 				
 			}
+			
+			// change cursor style
+			if ( intersects.length > 0 ) { $('html, body').css('cursor', 'pointer'); }
+			else {
+				$('html, body').css('cursor', 'default');
+				this.intersectedFrame = null;
+			}
+			
 			// my avatar interaction
 			if (this.carol) {
 				const intersectsAvatar = this.raycaster.intersectObject( this.carol, true );
@@ -397,12 +426,23 @@ class App {
 				}
 			}
 
-			// change cursor style
-			if ( intersects.length > 0 ) {
-				$('html, body').css('cursor', 'pointer');
-			} else {
-				$('html, body').css('cursor', 'default');
-				this.intersectedFrame = null;
+			// record player interaction
+			if (this.jukebox) {
+				const intersectsJukebox = this.raycaster.intersectObject( this.jukebox, true );
+				if (intersectsJukebox.length > 0) {
+					// start vinyl rotation animation
+					if (this.mixerMusic) {
+						this.mixerMusic.timeScale = 1.0;
+						if (!this.sound.isPlaying) this.sound.play(); // if sound not playing, play
+					}
+				}
+				else if (!this.selectedJukebox) {
+					// stop vinyl rotation animation
+					if (this.mixerMusic) {
+						this.mixerMusic.timeScale = 0;
+						if (this.sound.isPlaying) this.sound.pause(); // if sound playing, pause
+					}
+				}
 			}
 		}
 		
@@ -479,6 +519,20 @@ class App {
 			};
 
 			requestAnimationFrame(animateCamera);
+		}
+		else if (this.jukebox) {
+			const intersectsJukebox = this.raycaster.intersectObject( this.jukebox, true );
+			if (intersectsJukebox.length > 0) {
+				this.selectedJukebox = !this.selectedJukebox;
+				// toggle sound play/pause on click
+				if (this.sound.isPlaying) {
+					this.sound.pause();
+					this.mixerMusic.timeScale = 0; // pause vinyl
+				} else {
+					this.sound.play();
+					this.mixerMusic.timeScale = 1.0; // resume vinyl
+				}
+			}
 		}
 	}
 

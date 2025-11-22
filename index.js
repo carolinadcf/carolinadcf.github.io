@@ -34,6 +34,9 @@ class App {
 		this.mouse = new THREE.Vector2();
 		this.intersectedFrame = null;
 		this.mainFrame = null;
+		this.currentFrameIndex = 0;
+
+		// jukebox interaction
 		this.selectedJukebox = false;
 
         // instantiate loaders
@@ -113,20 +116,20 @@ class App {
 		});
 		// previous artwork
 		document.getElementById('prev-button').addEventListener('click', () => {
-			const currentIndex = this.frames.indexOf(this.intersectedFrame);
-			const prevIndex = (currentIndex - 1 + this.frames.length) % this.frames.length;
+			const prevIndex = (this.currentFrameIndex - 1 + this.frames.length) % this.frames.length;
 			const prevFrame = this.frames[prevIndex];
 			// simulate click on previous frame
 			this.intersectedFrame = prevFrame;
+			this.currentFrameIndex = prevIndex;
 			this.onMouseClick();
 		});
 		// next artwork
 		document.getElementById('next-button').addEventListener('click', () => {
-			const currentIndex = this.frames.indexOf(this.intersectedFrame);
-			const nextIndex = (currentIndex + 1) % this.frames.length;
+			const nextIndex = (this.currentFrameIndex + 1) % this.frames.length;
 			const nextFrame = this.frames[nextIndex];
 			// simulate click on next frame
 			this.intersectedFrame = nextFrame;
+			this.currentFrameIndex = nextIndex;
 			this.onMouseClick();
 		});
 
@@ -537,7 +540,7 @@ class App {
 
 				// animate camera movement
 				this.cameraCinematicMove(newCameraPosition, jukeboxPosition, 1000, () => {
-					document.getElementById('back-button').style.display = 'inline-block';
+					// document.getElementById('back-button').style.display = 'inline-block';
 				});
 			}
 		}
@@ -562,6 +565,7 @@ class App {
 			this.intersectedFrame = intersects[i].object.parent;
 			this.intersectedFrame.children[1].material.color = new THREE.Color(0xffffff);
 			this.intersectedFrame.children[1].material.emissive = new THREE.Color(0xffffff);
+			this.currentFrameIndex = this.frames.indexOf(this.intersectedFrame);
 		}
 		
 		// change cursor style

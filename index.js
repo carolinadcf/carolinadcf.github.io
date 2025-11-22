@@ -3,6 +3,11 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import {TransformControls} from 'three/addons/controls/TransformControls.js';
 import { initUI, UIState } from './ui.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
 
 class App {
 
@@ -53,6 +58,12 @@ class App {
 		this.vinyl = null;
 		this.sound = null;
 		this.listener = new THREE.AudioListener();
+
+		// postprocessing
+		this.composer = null;
+		this.renderPass = null;
+		this.outlinePass = null;
+		this.selectedObjects = [ ];
 	}
 
 	init( ) {
@@ -198,7 +209,7 @@ class App {
 			this.jukebox = gltf.scene;
 			this.jukebox.name = "jukebox";
 			this.jukebox.scale.set(0.5,0.5,0.5);
-			this.jukebox.position.y = 1.5;
+			this.jukebox.position.y = 1.55;
 
 			gltf.scene.traverse(function (child) {
 				if (child.isMesh) {
@@ -365,6 +376,23 @@ class App {
 			console.error('Error loading projects data:', error);
 		});
 
+		// postprocessing
+		this.composer = new EffectComposer(this.renderer);
+		this.renderPass = new RenderPass(this.scene, this.camera);
+		this.composer.addPass(this.renderPass);
+
+		this.outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), this.scene, this.camera);
+		this.outlinePass.edgeStrength = 3.0;
+		this.outlinePass.edgeGlow = 0.3;
+		this.outlinePass.pulsePeriod = 2;
+
+		this.composer.addPass(this.outlinePass);
+
+		this.effectFXAA = new ShaderPass(FXAAShader);
+		this.effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight);
+		this.composer.addPass(this.effectFXAA);
+		// end postprocessing
+
 		// initialize UI
 		initUI();
 
@@ -389,6 +417,7 @@ class App {
 		if (UIState.interactionEnabled)	{
 
 			this.raycaster.setFromCamera( this.mouse, this.camera );
+			this.selectedObjects = [ ];
 
 			// frame interaction
 			const intersects = this.raycaster.intersectObjects( this.frames, true );
@@ -423,18 +452,23 @@ class App {
 					if (this.currentAction !== 'wave') {
 						this.swapAnimations('wave');
 					}
+					// outline avatar
+					this.selectedObjects = [ this.carol ];
 				}
 			}
 
 			// record player interaction
 			if (this.jukebox) {
 				const intersectsJukebox = this.raycaster.intersectObject( this.jukebox, true );
+				// this.selectedObjects = [ ];
 				if (intersectsJukebox.length > 0) {
 					// start vinyl rotation animation
 					if (this.mixerMusic) {
 						this.mixerMusic.timeScale = 1.0;
 						if (!this.sound.isPlaying) this.sound.play(); // if sound not playing, play
 					}
+					// outline jukebox
+					this.selectedObjects = [ this.jukebox ];
 				}
 				else if (!this.selectedJukebox) {
 					// stop vinyl rotation animation
@@ -444,6 +478,7 @@ class App {
 					}
 				}
 			}
+			this.outlinePass.selectedObjects = this.selectedObjects;
 		}
 		
 		const delta = this.clock.getDelta();
@@ -456,7 +491,8 @@ class App {
 		
 		this.controls.update();
 		
-		this.renderer.render( this.scene, this.camera );
+		// this.renderer.render( this.scene, this.camera );
+		this.composer.render();
 	}
 
 	addLights() {

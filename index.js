@@ -101,6 +101,7 @@ class App {
 			document.getElementById('visit-link-button').style.display = 'none';
 			document.getElementById('back-button').style.display = 'none';
 		} );
+		// back button
 		document.getElementById('back-button').addEventListener('click', () => {
 			// move camera back to original position
 			const newCameraPosition = new THREE.Vector3(0, 2, 10);
@@ -112,6 +113,13 @@ class App {
 			document.getElementById('visit-link-button').style.display = 'none';
 			document.getElementById('back-button').style.display = 'none';
 		});
+		// disable raycaster when moving the camera
+		this.controls.addEventListener( 'start', () => {
+			UIState.interactionEnabled = false;
+		} );
+		this.controls.addEventListener( 'end', () => {
+			UIState.interactionEnabled = true;
+		} );
 		
 		// lights
 		this.addLights();
@@ -272,15 +280,14 @@ class App {
 				// place in different walls
 				// left wall
 				if (i < 3) {
-					this.frames[i].position.set(-9.9, 3, 4 - i*4);
+					this.frames[i].position.set(-9.9, 3, 6 - i*6);
 					this.frames[i].rotation.y = Math.PI / 2;
 				}
 				// front wall
 				else if (i < 6) {
 					this.frames[i].position.set(-2 + (i-3)*4, 3, -9.9);
 				}
-				// this.frames[i].position.set(-7 + i*4, 3, -9.9); // change location of frame
-				
+
 				// create texture with project image					
 				this.textureLoader.load( project.image, (texture) => {
 					texture.colorSpace = THREE.SRGBColorSpace;

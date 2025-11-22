@@ -34,6 +34,18 @@ class App {
 		this.textureLoader = new THREE.TextureLoader();
         this.gltfLoader = new GLTFLoader();
 
+		// animation mixers
+		this.mixerMusic = null;
+		this.mixerAvatar = null;
+
+		// actions
+		this.currentAction = 'sad';
+		this.idleAction = 'sad';
+		this.baseActions = {
+			sad: {weight: 1},
+			wave: {weight: 0}
+		};
+
 	}
 
 	init( ) {
@@ -136,22 +148,42 @@ class App {
 			const skeleton = new THREE.SkeletonHelper(this.carol);
 			// this.scene.add(skeleton);  // Optional: to visualize the skeleton
 	
+			// Create an AnimationMixer for your avatar
+			this.mixerAvatar = new THREE.AnimationMixer(this.carol);
+
 			// Load the Mixamo animation
 			this.gltfLoader.load('./data/animations/sad.glb', (gltf) => {
 				const animation = gltf.animations[0];  // Assuming it's the first animation
-
-				// Create an AnimationMixer for your avatar
-				this.mixerAvatar = new THREE.AnimationMixer(this.carol);
-
+				animation.name = "sad"; // rename animation
+				
 				// Create an action for the Mixamo animation and play it
-				const action = this.mixerAvatar.clipAction(animation);
-				action.play();
+				this.baseActions.sad.action = this.mixerAvatar.clipAction(animation);
+				this.baseActions.sad.action.play();
 				}, undefined, function(error) {
 				console.error('An error occurred while loading the animation:', error);
 			});
 
-			}
-		);
+			// load wave animation
+			this.gltfLoader.load('./data/animations/wave.glb', (gltf) => {
+				const animation = gltf.animations[0];  // Assuming it's the first animation
+				animation.name = "wave"; // rename animation
+
+				// Create an action for the Mixamo animation and play it
+				this.baseActions.wave.action = this.mixerAvatar.clipAction(animation);
+				this.baseActions.wave.action.clampWhenFinished = true;
+				this.baseActions.wave.action.setLoop(THREE.LoopOnce);
+
+				}, undefined, function(error) {
+				console.error('An error occurred while loading the animation:', error);
+			});
+
+			// when wave ends, go back to idle (sad)
+			this.mixerAvatar.addEventListener('finished', (e) => {
+				if (e.action === this.baseActions.wave.action) {
+					this.swapAnimations(this.idleAction);
+				}
+			});
+		});
 
 		// jukebox
         this.gltfLoader.load( './data/record_player/scene.gltf', ( gltf ) => {
@@ -336,6 +368,8 @@ class App {
 		if (UIState.interactionEnabled)	{
 
 			this.raycaster.setFromCamera( this.mouse, this.camera );
+
+			// frame interaction
 			const intersects = this.raycaster.intersectObjects( this.frames, true );
 			
 			// reset all frames
@@ -352,7 +386,17 @@ class App {
 				this.intersectedFrame.children[1].material.emissive = new THREE.Color(0xffffff);
 				
 			}
-			
+			// my avatar interaction
+			if (this.carol) {
+				const intersectsAvatar = this.raycaster.intersectObject( this.carol, true );
+				if (intersectsAvatar.length > 0) {
+					// play wave animation
+					if (this.currentAction !== 'wave') {
+						this.swapAnimations('wave');
+					}
+				}
+			}
+
 			// change cursor style
 			if ( intersects.length > 0 ) {
 				$('html, body').css('cursor', 'pointer');
@@ -447,6 +491,18 @@ class App {
 		link.href = project.link;
 		link.target = '_blank';
 		link.style.display = 'inline-block';
+	}
+	
+	// manage animations crossfade
+	swapAnimations(toPlay) {
+		const current = this.baseActions[this.currentAction];
+		const next = this.baseActions[toPlay];
+		
+		next.action.reset();
+		next.action.play();
+		next.action.crossFadeFrom(current.action, 0.5, true);
+		
+		this.currentAction = toPlay;
 	}
 }
 

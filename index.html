@@ -21,6 +21,11 @@
 </head>
 
 <body>
+    <div class="mobile-text">
+        <h1>This portfolio is best viewed on a desktop device.</h1>
+        <p>Please switch to a desktop or laptop for the full experience :)</p>
+    </div>
+
     <div id="preloader" class="preloader">
         <div class="ticket">
             <div class="check">
@@ -239,15 +244,19 @@
 
         if (hasTouchSupport()) {
             console.log("Mobile device detected");
-            // redirec to mobile version
-            window.location.href = "web.html";
+            // show mobile text
+            document.querySelector('.mobile-text').style.display = 'block';
+            // hide preloader and ui
+            document.getElementById('preloader').style.display = 'none';
+            document.querySelector('.main-ui').style.display = 'none';
         } else {
             console.log("Desktop device detected");
+            // hide mobile text
+            document.querySelector('.mobile-text').style.display = 'none';
+            // run index.js
+            import('./index.js');
         }
     </script>
-
-    <script src="./index.js" type="module"></script>
-
 </body>
 
 </html>

@@ -98,8 +98,7 @@ class App {
 		window.addEventListener( 'mousemove', this.onMouseMove.bind(this), false );
 		window.addEventListener( 'click', this.onMouseClick.bind(this), false );
 		this.controls.addEventListener( 'change', () => {
-			document.getElementById('visit-link-button').style.display = 'none';
-			document.getElementById('back-button').style.display = 'none';
+			document.getElementById('scene-ui').style.display = 'none';
 		} );
 		// back button
 		document.getElementById('back-button').addEventListener('click', () => {
@@ -110,9 +109,27 @@ class App {
 			// animate camera movement
 			this.cameraCinematicMove(newCameraPosition, newTargetPosition, 1000);
 
-			document.getElementById('visit-link-button').style.display = 'none';
-			document.getElementById('back-button').style.display = 'none';
+			document.getElementById('scene-ui').style.display = 'none';
 		});
+		// previous artwork
+		document.getElementById('prev-button').addEventListener('click', () => {
+			const currentIndex = this.frames.indexOf(this.intersectedFrame);
+			const prevIndex = (currentIndex - 1 + this.frames.length) % this.frames.length;
+			const prevFrame = this.frames[prevIndex];
+			// simulate click on previous frame
+			this.intersectedFrame = prevFrame;
+			this.onMouseClick();
+		});
+		// next artwork
+		document.getElementById('next-button').addEventListener('click', () => {
+			const currentIndex = this.frames.indexOf(this.intersectedFrame);
+			const nextIndex = (currentIndex + 1) % this.frames.length;
+			const nextFrame = this.frames[nextIndex];
+			// simulate click on next frame
+			this.intersectedFrame = nextFrame;
+			this.onMouseClick();
+		});
+
 		// disable raycaster when moving the camera
 		this.controls.addEventListener( 'start', () => {
 			UIState.interactionEnabled = false;
@@ -494,8 +511,7 @@ class App {
 			// animate camera movement
 			this.cameraCinematicMove(newCameraPosition, framePosition, 1000, () => {
 				// show visit link and back button
-				document.getElementById('visit-link-button').style.display = 'inline-block';
-				document.getElementById('back-button').style.display = 'inline-block';
+				document.getElementById('scene-ui').style.display = 'flex';
 			});
 
 		}

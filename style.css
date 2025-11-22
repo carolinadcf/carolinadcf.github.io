@@ -207,17 +207,7 @@ body {
     gap: 10px;
 }
 
-.scene-ui {
-    position: absolute;
-    bottom: 10vh;
-    right: 10vw;
-    z-index: 5;
-}
-
-.button,
-.visit-link-button,
-.back-button,
-.close-button {
+.button {
     font-family: 'Didot', serif;
     font-size: 1.2em;
     color: var(--secondary-color);
@@ -229,22 +219,41 @@ body {
     transition: background-color 0.3s, color 0.3s;
 }
 
-.visit-link-button {
-    display: none;
-    text-decoration: none;
-    font-weight: bold;
-}
-
-.back-button {
-    display: none;
-}
-
 .close-button {
     display: none;
     position: absolute;
     top: 20px;
     right: 20px;
     z-index: 102;
+}
+
+.scene-ui {
+    position: absolute;
+    bottom: 10px;
+    margin: 5%;
+    width: 90%;
+    z-index: 5;
+
+    display: none;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: space-between;
+}
+
+.visit-link-button {
+    text-decoration: none;
+    font-weight: bold;
+    margin: auto;
+}
+
+.prev-button {
+    /* position: absolute; */
+    left: 5%;
+}
+
+.next-button {
+    /* position: absolute; */
+    right: 5%;
 }
 
 /* about me section */

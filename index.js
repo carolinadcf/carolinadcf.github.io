@@ -98,9 +98,20 @@ class App {
 		window.addEventListener( 'mousemove', this.onMouseMove.bind(this), false );
 		window.addEventListener( 'click', this.onMouseClick.bind(this), false );
 		this.controls.addEventListener( 'change', () => {
-			var link = document.getElementById('visit-link-button');
-			link.style.display = 'none';
+			document.getElementById('visit-link-button').style.display = 'none';
+			document.getElementById('back-button').style.display = 'none';
 		} );
+		document.getElementById('back-button').addEventListener('click', () => {
+			// move camera back to original position
+			const newCameraPosition = new THREE.Vector3(0, 2, 10);
+			const newTargetPosition = new THREE.Vector3(0, 3, 0);
+
+			// animate camera movement
+			this.cameraCinematicMove(newCameraPosition, newTargetPosition, 1000);
+
+			document.getElementById('visit-link-button').style.display = 'none';
+			document.getElementById('back-button').style.display = 'none';
+		});
 		
 		// lights
 		this.addLights();
@@ -535,26 +546,12 @@ class App {
 			const newCameraPosition = framePosition.clone().add(frameNormal.clone().multiplyScalar(zoomOutFactor)).add(new THREE.Vector3(0, 0, 0));
 
 			// animate camera movement
-			const duration = 1000; // in ms
-			const startPosition = this.camera.position.clone();
-			const startTime = performance.now();
+			this.cameraCinematicMove(newCameraPosition, framePosition, 1000, () => {
+				// show visit link and back button
+				document.getElementById('visit-link-button').style.display = 'inline-block';
+				document.getElementById('back-button').style.display = 'inline-block';
+			});
 
-			const animateCamera = (time) => {
-				const elapsed = time - startTime;
-				const t = Math.min(elapsed / duration, 1); // normalized time [0,1]
-
-				this.camera.position.lerpVectors(startPosition, newCameraPosition, t);
-				this.controls.target.lerpVectors(this.controls.target, framePosition, t);
-				this.controls.update();
-
-				if (t < 1) {
-					requestAnimationFrame(animateCamera);
-				}
-				var link = document.getElementById('visit-link-button');
-				link.style.display = 'inline-block';
-			};
-
-			requestAnimationFrame(animateCamera);
 		}
 		else if (this.jukebox) {
 			const intersectsJukebox = this.raycaster.intersectObject( this.jukebox, true );
@@ -580,7 +577,6 @@ class App {
 		var link = document.getElementById('visit-link-button');
 		link.href = project.link;
 		link.target = '_blank';
-		link.style.display = 'inline-block';
 	}
 	
 	// manage animations crossfade
@@ -593,6 +589,29 @@ class App {
 		next.action.crossFadeFrom(current.action, 0.5, true);
 		
 		this.currentAction = toPlay;
+	}
+
+	cameraCinematicMove(newPosition, newTarget, duration = 1000, callback = null) {
+		// animate camera movement
+		const startPosition = this.camera.position.clone();
+		const startTarget = this.controls.target.clone();
+		const startTime = performance.now();
+
+		const animateCamera = (time) => {
+			const elapsed = time - startTime;
+			const t = Math.min(elapsed / duration, 1); // normalized time [0,1]
+
+			this.camera.position.lerpVectors(startPosition, newPosition, t);
+			this.controls.target.lerpVectors(startTarget, newTarget, t);
+			this.controls.update();
+
+			if (t < 1) {
+				requestAnimationFrame(animateCamera);
+			}
+			if (callback) callback();
+		};
+
+		requestAnimationFrame(animateCamera);
 	}
 }
 

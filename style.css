@@ -214,6 +214,7 @@ body {
 
 .button,
 .visit-link-button,
+.back-button,
 .close-button {
     font-family: 'Didot', serif;
     font-size: 1.2em;
@@ -230,6 +231,10 @@ body {
     display: none;
     text-decoration: none;
     font-weight: bold;
+}
+
+.back-button {
+    display: none;
 }
 
 .close-button {

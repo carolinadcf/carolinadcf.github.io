@@ -164,6 +164,7 @@ body {
 .stub-text {
     position: absolute;
     top: 10%;
+    animation: blink 1.5s infinite;
 }
 
 .barcode {
@@ -206,6 +207,18 @@ body {
     100% {
         transform: translateY(80%) translateX(5%) rotate(10deg);
         transform-origin: bottom left;
+    }
+}
+
+@keyframes blink {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.3;
     }
 }
 

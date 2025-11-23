@@ -88,29 +88,27 @@ export function initUI() {
             page.style.zIndex = (pages.length - i);
         }
     }
-
-    document.addEventListener('DOMContentLoaded', function(){
-        for(var i = 0; i < pages.length; i++)
+    
+    // add onclick events to each page
+    for(var i = 0; i < pages.length; i++) {
+        //Or var page = pages[i];
+        pages[i].pageNum = i + 1;
+        pages[i].onclick=function()
             {
-            //Or var page = pages[i];
-            pages[i].pageNum = i + 1;
-            pages[i].onclick=function()
+            if (this.pageNum % 2 === 0)
                 {
-                if (this.pageNum % 2 === 0)
-                    {
-                    this.classList.remove('flipped');
-                    this.previousElementSibling.classList.remove('flipped');
-                    }
-                else
-                    {
-                    this.classList.add('flipped');
-                    if (this.nextElementSibling) {
-                        this.nextElementSibling.classList.add('flipped');
-                    }
-                    }
+                this.classList.remove('flipped');
+                this.previousElementSibling.classList.remove('flipped');
+                }
+            else
+                {
+                this.classList.add('flipped');
+                if (this.nextElementSibling) {
+                    this.nextElementSibling.classList.add('flipped');
+                }
                 }
             }
-    });
+        }
     // end of book animation
 
 }

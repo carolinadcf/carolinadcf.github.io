@@ -21,10 +21,11 @@
 </head>
 
 <body>
-    <!-- <div class="mobile-text">
-        <h1>This portfolio is best viewed on a desktop device.</h1>
+    <div class="mobile-text">
+        <h1>My portfolio is best viewed on a desktop device</h1>
         <p>Please switch to a desktop or laptop for the full experience :)</p>
-    </div> -->
+        <span>Carolina del Corral Farraros</span>
+    </div>
 
     <div id="preloader" class="preloader">
         <div class="ticket">
@@ -237,7 +238,7 @@
 
     <!-- detect if on mobile via feature detection -->
     <!-- https://medium.com/geekculture/detecting-mobile-vs-desktop-browsers-in-javascript-ad46e8d23ce5 -->
-    <script>
+    <script type="module">
         function hasTouchSupport() {
             return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
         }
@@ -254,11 +255,9 @@
             // hide mobile text
             document.querySelector('.mobile-text').style.display = 'none';
             // run index.js
-            // import('./index.js');
+            import('./index.js');
         }
     </script>
-
-    <script type="module" src="./index.js"></script>
 </body>
 
 </html>

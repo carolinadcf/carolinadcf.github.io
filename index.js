@@ -285,14 +285,14 @@ class App {
 					const frameWidth = frameHeight * imageAspect;
 					frameGeometry.scale(frameWidth, frameHeight, 1);
 					
-					const frameMaterial = new THREE.MeshStandardMaterial({ map: texture, side: THREE.DoubleSide, toneMapped: false});
+					const frameMaterial = new THREE.MeshStandardMaterial({ map: texture, toneMapped: false});
 					const frame = new THREE.Mesh(frameGeometry, frameMaterial);
 					this.frames[i].add(frame);
 					
 					// back plane (frame)
 					const backGeometry = new THREE.PlaneGeometry();
 					backGeometry.scale(frameWidth + 0.1, frameHeight + 0.1, 1);
-					const backMaterial = new THREE.MeshStandardMaterial({ color: 0x000000, side: THREE.DoubleSide });
+					const backMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
 					const backPlane = new THREE.Mesh(backGeometry, backMaterial);
 					backPlane.position.z = -0.01; // slightly behind the image
 					this.frames[i].add(backPlane);
@@ -464,7 +464,7 @@ class App {
 
 	onMouseClick( event ) {
 		if (!UIState.interactionEnabled) return;
-		
+
 		// always update raycaster from latest mouse position
 		this.raycaster.setFromCamera( this.mouse, this.camera );
 
@@ -548,6 +548,11 @@ class App {
 		
 		// highlight intersected frame
 		for ( let i = 0; i < intersects.length; i++ ) {
+			if (intersects[i].object.userData && intersects[i].object.userData.project) {
+				// border shadow on card occluder
+				this.selectedObjects = [ intersects[i].object ];
+				continue;
+			};
 			// highlight border of frame
 			this.intersectedFrame = intersects[i].object.parent;
 			this.intersectedFrame.children[1].material.color = new THREE.Color(0xffffff);

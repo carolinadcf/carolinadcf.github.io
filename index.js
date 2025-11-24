@@ -8,6 +8,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
+import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
 
 class App {
 
@@ -62,6 +63,8 @@ class App {
 		this.sound = null;
 		this.listener = new THREE.AudioListener();
 
+		this.labelRenderer = new CSS3DRenderer();
+
 		// postprocessing
 		this.composer = null;
 		this.renderPass = null;
@@ -96,50 +99,7 @@ class App {
 		this.controls.maxPolarAngle = Math.PI / 2;
 		this.controls.update();
 
-		// event listeners
-		window.addEventListener( 'resize', this.onWindowResize.bind(this) );
-		window.addEventListener( 'mousemove', this.onMouseMove.bind(this), false );
-		window.addEventListener( 'click', this.onMouseClick.bind(this), false );
-		this.controls.addEventListener( 'change', () => {
-			document.getElementById('scene-ui').style.display = 'none';
-		} );
-		// back button
-		document.getElementById('back-button').addEventListener('click', () => {
-			// move camera back to original position
-			const newCameraPosition = new THREE.Vector3(0, 2, 10);
-			const newTargetPosition = new THREE.Vector3(0, 3, 0);
-
-			// animate camera movement
-			this.cameraCinematicMove(newCameraPosition, newTargetPosition, 1000);
-
-			document.getElementById('scene-ui').style.display = 'none';
-		});
-		// previous artwork
-		document.getElementById('prev-button').addEventListener('click', () => {
-			const prevIndex = (this.currentFrameIndex - 1 + this.frames.length) % this.frames.length;
-			const prevFrame = this.frames[prevIndex];
-			// simulate click on previous frame
-			this.intersectedFrame = prevFrame;
-			this.currentFrameIndex = prevIndex;
-			this.onMouseClick();
-		});
-		// next artwork
-		document.getElementById('next-button').addEventListener('click', () => {
-			const nextIndex = (this.currentFrameIndex + 1) % this.frames.length;
-			const nextFrame = this.frames[nextIndex];
-			// simulate click on next frame
-			this.intersectedFrame = nextFrame;
-			this.currentFrameIndex = nextIndex;
-			this.onMouseClick();
-		});
-
-		// disable raycaster when moving the camera
-		this.controls.addEventListener( 'start', () => {
-			UIState.interactionEnabled = false;
-		} );
-		this.controls.addEventListener( 'end', () => {
-			UIState.interactionEnabled = true;
-		} );
+		this.eventListeners( );
 		
 		// lights
 		this.addLights();
@@ -285,6 +245,13 @@ class App {
             }
         );
 
+		// label renderer
+		this.labelRenderer.setSize( window.innerWidth, window.innerHeight );
+		this.labelRenderer.domElement.style.position = 'absolute';
+		this.labelRenderer.domElement.style.top = '0px';
+		this.labelRenderer.domElement.style.pointerEvents = 'none';
+		document.body.appendChild( this.labelRenderer.domElement );
+
 		// load projects data
 		fetch('./data/cv.json')
 		.then(response => response.json())
@@ -313,97 +280,35 @@ class App {
 					texture.colorSpace = THREE.SRGBColorSpace;
 					
 					// plane with image of its size
-					const planeGeometry = new THREE.PlaneGeometry();
+					const frameGeometry = new THREE.PlaneGeometry();
 					// adjust plane size based on image aspect ratio
 					const imageAspect = texture.image.width / texture.image.height;
-					const planeHeight = 2; // desired height
-					const planeWidth = planeHeight * imageAspect;
-					planeGeometry.scale(planeWidth, planeHeight, 1);
+					const frameHeight = 2; // desired height
+					const frameWidth = frameHeight * imageAspect;
+					frameGeometry.scale(frameWidth, frameHeight, 1);
 					
-					const planeMaterial = new THREE.MeshStandardMaterial({ map: texture, side: THREE.DoubleSide, toneMapped: false});
-					const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-					this.frames[i].add(plane);
+					const frameMaterial = new THREE.MeshStandardMaterial({ map: texture, side: THREE.DoubleSide, toneMapped: false});
+					const frame = new THREE.Mesh(frameGeometry, frameMaterial);
+					this.frames[i].add(frame);
 					
 					// back plane (frame)
 					const backGeometry = new THREE.PlaneGeometry();
-					backGeometry.scale(planeWidth + 0.1, planeHeight + 0.1, 1);
+					backGeometry.scale(frameWidth + 0.1, frameHeight + 0.1, 1);
 					const backMaterial = new THREE.MeshStandardMaterial({ color: 0x000000, side: THREE.DoubleSide });
 					const backPlane = new THREE.Mesh(backGeometry, backMaterial);
 					backPlane.position.z = -0.01; // slightly behind the image
 					this.frames[i].add(backPlane);
 
-					// card info
-					const cardGeometry = new THREE.PlaneGeometry();
-					cardGeometry.scale(0.7, 0.5, 1);
-					
-					// add text info to card using canvas texture
-					const canvas = document.createElement('canvas');
-					const context = canvas.getContext('2d');
-					// white background
-					context.fillStyle = 'white';
-					context.fillRect(0, 0, canvas.width, canvas.height);
-					context.fillStyle = 'black';
-					// project title
-					context.font = "24px Didot";
-					context.fillText(project.title, 20, 40);
-					// description - dont overflow
-					context.font = "16px Didot";
-					const descriptionLines = [];
-					const words = project.description.split(' ');
-					let line = '';
-					words.forEach((word) => {
-						const testLine = line + word + ' ';
-						const metrics = context.measureText(testLine);
-						const testWidth = metrics.width;
-						if (testWidth > canvas.width - 40 && line !== '') {
-							descriptionLines.push(line);
-							line = word + ' ';
-						} else {
-							line = testLine;
-						}
-					});
-					descriptionLines.push(line);
-					// draw each line
-					descriptionLines.forEach((descLine, index) => {
-						context.fillText(descLine, 20, 70 + index * 20);
-					});
-					
-					// organization
-					context.font = "14px Didot";
-					context.fillText(`${project.organization}`, 20, canvas.height - 40);
-
-					// tags
-					context.font = "12px Didot";
-					const tagsText = project.tags.join(', ');
-					context.fillText(`[${tagsText}]`, 20, canvas.height - 20);
-
-					// start and end date - bottom right
-					context.font = "12px Didot";
-					// if date undefined don't show
-					if (!project.startDate && !project.endDate) {
-						// do nothing
-					}
-					else {
-						if (!project.endDate) project.endDate = "";
-						if (!project.startDate) project.startDate = "";
-						context.fillText(`(${project.startDate} - ${project.endDate})`, canvas.width - 150, canvas.height - 20);
-					}					
-
-					// create texture
-					const textureCard = new THREE.CanvasTexture(canvas);
-					textureCard.needsUpdate = true;
-
-					var cardMaterial = new THREE.MeshBasicMaterial({
-						color: 0xffffff,
-						map: textureCard,
-						side: THREE.DoubleSide,
-						toneMapped: false
-					});
-
-					const cardPlane = new THREE.Mesh(cardGeometry, cardMaterial);
 					// bottom right of the frame
-					cardPlane.position.set(planeWidth/2 + 0.6, -planeHeight/2 + 0.25, 0.01);
-					this.frames[i].add(cardPlane);
+					let x = frameWidth/2 + 0.6;
+					let y = -frameHeight/2 + 0.25;
+					
+					// place card info in HTML element for better readability					
+					const card = this.createProjectCard(project);
+					const cardLabel = new CSS3DObject( card );
+					cardLabel.scale.set(0.002,0.002,0.002);
+					cardLabel.position.set( x, y, 0.01 );
+					this.frames[i].add( cardLabel );
 				});
 
 				// add to scene
@@ -436,6 +341,56 @@ class App {
 
 	} // end init
 
+	eventListeners( ) {
+		// event listeners
+		window.addEventListener( 'resize', this.onWindowResize.bind(this) );
+		window.addEventListener( 'mousemove', this.onMouseMove.bind(this), false );
+		window.addEventListener( 'click', this.onMouseClick.bind(this), false );
+		
+		// remove UI when moving camera
+		this.controls.addEventListener( 'change', () => {
+			document.getElementById('scene-ui').style.display = 'none';
+		} );
+
+		// camera back to center
+		document.getElementById('back-button').addEventListener('click', () => {
+			// move camera back to original position
+			const newCameraPosition = new THREE.Vector3(0, 2, 10);
+			const newTargetPosition = new THREE.Vector3(0, 3, 0);
+
+			// animate camera movement
+			this.cameraCinematicMove(newCameraPosition, newTargetPosition, 1000);
+
+			document.getElementById('scene-ui').style.display = 'none';
+		});
+		// previous artwork
+		document.getElementById('prev-button').addEventListener('click', () => {
+			const prevIndex = (this.currentFrameIndex - 1 + this.frames.length) % this.frames.length;
+			const prevFrame = this.frames[prevIndex];
+			// simulate click on previous frame
+			this.intersectedFrame = prevFrame;
+			this.currentFrameIndex = prevIndex;
+			this.onMouseClick();
+		});
+		// next artwork
+		document.getElementById('next-button').addEventListener('click', () => {
+			const nextIndex = (this.currentFrameIndex + 1) % this.frames.length;
+			const nextFrame = this.frames[nextIndex];
+			// simulate click on next frame
+			this.intersectedFrame = nextFrame;
+			this.currentFrameIndex = nextIndex;
+			this.onMouseClick();
+		});
+
+		// disable raycaster when moving the camera
+		this.controls.addEventListener( 'start', () => {
+			UIState.interactionEnabled = false;
+		} );
+		this.controls.addEventListener( 'end', () => {
+			UIState.interactionEnabled = true;
+		} );
+	}
+
 	onWindowResize() {
 
 		this.camera.aspect = window.innerWidth / window.innerHeight;
@@ -444,6 +399,8 @@ class App {
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
 		this.effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight);
 		this.composer.setSize( window.innerWidth, window.innerHeight );
+
+		this.labelRenderer.setSize( window.innerWidth, window.innerHeight );
 
 		this.animate();
 
@@ -465,8 +422,8 @@ class App {
 		
 		this.controls.update();
 		
-		// this.renderer.render( this.scene, this.camera );
 		this.composer.render();
+		this.labelRenderer.render( this.scene, this.camera );
 	}
 
 	addLights() {
@@ -498,25 +455,26 @@ class App {
 
 	onMouseClick( event ) {
 		if (this.intersectedFrame) {
-			const projectTitle = this.intersectedFrame.name;
-			this.showCard(projectTitle); // show more info about the project
-
 			// move camera to the front of the frame
 			const framePosition = new THREE.Vector3();
 			this.intersectedFrame.getWorldPosition(framePosition);
-			framePosition.x += 0.5; // offset to the side
 			const frameNormal = new THREE.Vector3(0, 0, 1);
 			frameNormal.applyQuaternion(this.intersectedFrame.quaternion);
+			// offset from frame along its normal
+			const offset = frameNormal.clone().multiplyScalar(1);
+			framePosition.x += offset.z;
+			framePosition.y += 0;
+			framePosition.z -= offset.x; // small offset up
+			
 			// calculate zoom out factor according to frame size
 			const zoomOutFactor = this.intersectedFrame.scale.length() * 4;
-			const newCameraPosition = framePosition.clone().add(frameNormal.clone().multiplyScalar(zoomOutFactor)).add(new THREE.Vector3(0, 0, 0));
+			const newCameraPosition = framePosition.clone().add(frameNormal.clone().multiplyScalar(zoomOutFactor));
 
 			// animate camera movement
 			this.cameraCinematicMove(newCameraPosition, framePosition, 1000, () => {
 				// show visit link and back button
 				document.getElementById('scene-ui').style.display = 'flex';
 			});
-
 		}
 		else if (this.jukebox) {
 			const intersectsJukebox = this.raycaster.intersectObject( this.jukebox, true );
@@ -611,14 +569,45 @@ class App {
 		this.outlinePass.selectedObjects = this.selectedObjects;
 	}
 
-	showCard(projectTitle) {
-		const project = this.projects.find(p => p.title === projectTitle);
-		if (!project) return;
+	createProjectCard(project) {
+		// create HTML elements for project card
+		const card = document.createElement('div');
+		card.className = 'project-card';
 
-		// add clickable functional link
-		var link = document.getElementById('visit-link-button');
-		link.href = project.link;
-		link.target = '_blank';
+		card.innerHTML = `<h1 class="project-title">${project.title}</h1>
+			<div class="project-subinfo">
+				<h3 class="project-organization">${project.organization}</h3>
+				<p class="project-dates">${project.startDate || ''}${project.endDate ? ' - ' + project.endDate : ''}</p>
+			</div>
+			<hr>
+			<p class="project-description">${project.description}</p>
+			<a href="${project.link}" class="project-link" target="_blank">${project.linkText || 'Visit Project'}</a>
+			<div class="project-tags">[${(project.tags || []).join(', ')}]</div>
+    	`;
+
+		// show 2d card on click
+		card.onclick = (e) => {
+			e.stopPropagation(); // prevent event bubbling
+			this.showCardModal(project, card);
+		};
+		
+		return card;
+	}
+
+	showCardModal(project, cardElement) {
+		if (!project) return;
+		// populate modal with project info
+		const modal = document.getElementById('project-modal');
+		modal.querySelector('.modal-body').innerHTML = cardElement.innerHTML;
+		
+		modal.style.display = 'flex';
+		UIState.interactionEnabled = false;
+
+		// close modal event
+		modal.querySelector('.close').onclick = () => {
+			modal.style.display = 'none';
+			UIState.interactionEnabled = true;
+		}
 	}
 	
 	// manage animations crossfade

@@ -266,6 +266,100 @@ body {
     justify-content: space-between;
 }
 
+/* project card info */
+.project-card {
+    background-color: var(--primary-color);
+    width: 30%;
+    max-width: 350px;
+    padding: 20px;
+    color: var(--secondary-color);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    pointer-events: auto;
+}
+
+.project-card:hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+}
+
+.project-title {
+    margin: 0;
+    font-size: 2em;
+    font-weight: bold;
+}
+
+.project-subinfo {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.project-organization {
+    margin: 5px 0;
+    font-size: 1.2em;
+    font-style: italic;
+}
+
+.project-dates {
+    margin: 5px 0;
+    font-size: 0.9em;
+    font-style: italic;
+}
+
+.project-description {
+    margin: 10px 0;
+    font-size: 1em;
+}
+
+.project-link {
+    display: inline-block;
+    margin: 10px 0;
+    font-size: 1em;
+    color: var(--terciary-color);
+}
+
+.project-tags {
+    margin: 10px 0;
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    background: var(--terciary-color);
+    margin: 10px 0 10px 0;
+}
+
+/* card modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 200;
+    width: 30%;
+    max-width: 400px;
+    max-height: 80%;
+    overflow-y: auto;
+}
+
+.close {
+    position: absolute;
+    top: 5px;
+    right: 15px;
+    cursor: pointer;
+    font-size: 2em;
+}
+
+.close:hover {
+    color: var(--terciary-color);
+}
+
+/* scene UI buttons */
 .visit-link-button {
     text-decoration: none;
     font-weight: bold;

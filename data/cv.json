@@ -3,7 +3,7 @@
         "title": "Animics",
         "link": "https://animics.gti.upf.edu/",
         "organization": "GTI-UPF",
-        "description": "",
+        "description": "Web-based tool for generating 3D character animations, with a strong focus on sign language and embodied communication.",
         "image": "./data/projects/animics.png",
         "tags": [
             "WebGL",
@@ -11,13 +11,13 @@
             "Animation"
         ],
         "startDate": "July 2023",
-        "endDate": ""
+        "endDate": "Present"
     },
     {
         "title": "Performs",
         "link": "https://performs.gti.upf.edu/",
         "organization": "GTI-UPF",
-        "description": "",
+        "description": "Performs is designed to visualize and synthesize humanoid animations for customized avatars. You can play animation files or synthesize them in real-time from instructions.",
         "image": "./data/projects/performs.png",
         "tags": [
             "WebGL",
@@ -25,13 +25,13 @@
             "Animation"
         ],
         "startDate": "July 2023",
-        "endDate": ""
+        "endDate": "Present"
     },
     {
         "title": "Performs Atelier",
         "link": "https://atelier.gti.upf.edu/",
         "organization": "GTI-UPF",
-        "description": "",
+        "description": "This tool helps set up all the necessary parameters to create a configuration file that can be used with the Performs script animation system.",
         "image": "./data/projects/atelier.png",
         "tags": [
             "WebGL",
@@ -39,13 +39,13 @@
             "Animation"
         ],
         "startDate": "July 2023",
-        "endDate": ""
+        "endDate": "Present"
     },
     {
         "title": "Searebbel",
         "link": "https://carolinadcf.github.io/searebbel/",
         "organization": "Bachelor's Thesis",
-        "description": ".",
+        "description": "Real-time 3D navigation visualization tool on the web.",
         "image": "./data/projects/searebbel.png",
         "tags": [
             "WebGL",
@@ -59,7 +59,7 @@
         "title": "The Good Rave",
         "link": "https://globalgamejam.org/games/2024/good-rave-7",
         "organization": "Personal Project",
-        "description": ".",
+        "description": "Video game created for the Global Game Jam 2024 using the Godot engine. Imagine Paper's Please, but as the substitute of Saint Peter wanting to throw a rave party in Heaven.",
         "image": "./data/projects/good_rave.jpg",
         "tags": [
             "Godot",

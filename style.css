@@ -13,6 +13,15 @@ body {
     overflow: hidden;
 }
 
+#css,
+#webgl {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
 /* mobile text */
 .mobile-text {
     display: none;
@@ -442,6 +451,7 @@ hr {
     max-width: 400px;
     height: 44vw;
     max-height: 575px;
+    min-height: 540px;
     float: left;
     margin-bottom: 0.5em;
     background: left top no-repeat;

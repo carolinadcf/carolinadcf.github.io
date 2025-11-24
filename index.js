@@ -78,7 +78,7 @@ class App {
 		this.scene.background = new THREE.Color( 0x4d575e );
 
 		// renderer
-		this.renderer = new THREE.WebGLRenderer( { antialias: true } );
+		this.renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true } );
 		this.renderer.setPixelRatio( window.devicePixelRatio );
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
 		this.renderer.shadowMap.enabled = true;
@@ -86,7 +86,12 @@ class App {
 		
         this.renderer.toneMapping = THREE.CineonToneMapping ;
         this.renderer.toneMappingExposure = 1;
-		document.body.appendChild( this.renderer.domElement );
+		document.getElementById('webgl').appendChild(this.renderer.domElement);
+
+		// label renderer
+		this.labelRenderer.setSize( window.innerWidth, window.innerHeight );
+		// this.labelRenderer.domElement.style.pointerEvents = 'none';
+		document.getElementById('css').appendChild(this.labelRenderer.domElement);
 
 		// camera
 		this.camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 100 );
@@ -245,13 +250,6 @@ class App {
             }
         );
 
-		// label renderer
-		this.labelRenderer.setSize( window.innerWidth, window.innerHeight );
-		this.labelRenderer.domElement.style.position = 'absolute';
-		this.labelRenderer.domElement.style.top = '0px';
-		this.labelRenderer.domElement.style.pointerEvents = 'none';
-		document.body.appendChild( this.labelRenderer.domElement );
-
 		// load projects data
 		fetch('./data/cv.json')
 		.then(response => response.json())
@@ -303,12 +301,22 @@ class App {
 					let x = frameWidth/2 + 0.6;
 					let y = -frameHeight/2 + 0.25;
 					
-					// place card info in HTML element for better readability					
-					const card = this.createProjectCard(project);
-					const cardLabel = new CSS3DObject( card );
-					cardLabel.scale.set(0.002,0.002,0.002);
-					cardLabel.position.set( x, y, 0.01 );
-					this.frames[i].add( cardLabel );
+					// create a WebGL plane textured from a 2D canvas with the card details
+					// so the card is part of the 3D scene (occludable and pickable).
+					const cardCanvas = this.createProjectCardCanvas(project);
+					const cardTexture = new THREE.CanvasTexture(cardCanvas);
+					cardTexture.needsUpdate = true;
+
+					// choose a width in world units and compute height from canvas aspect
+					const cardPlaneWidth = 0.75;
+					const cardPlaneHeight = cardPlaneWidth * (cardCanvas.height / cardCanvas.width);
+					const cardGeometry = new THREE.PlaneGeometry(cardPlaneWidth, cardPlaneHeight);
+					const cardMaterial = new THREE.MeshBasicMaterial({ map: cardTexture, transparent: true, toneMapped: false });
+					const cardMesh = new THREE.Mesh(cardGeometry, cardMaterial);
+					cardMesh.position.set( x, y, 0.01 ); // slightly in front of frame image
+					// attach project data for click handling
+					cardMesh.userData.project = project;
+					this.frames[i].add(cardMesh);
 				});
 
 				// add to scene
@@ -350,6 +358,7 @@ class App {
 		// remove UI when moving camera
 		this.controls.addEventListener( 'change', () => {
 			document.getElementById('scene-ui').style.display = 'none';
+			document.getElementById('project-modal').style.display = 'none';
 		} );
 
 		// camera back to center
@@ -454,6 +463,26 @@ class App {
 	}
 
 	onMouseClick( event ) {
+		if (!UIState.interactionEnabled) return;
+		
+		// always update raycaster from latest mouse position
+		this.raycaster.setFromCamera( this.mouse, this.camera );
+
+		// check for clicks on card occluder meshes (they carry project data)
+		const pickIntersects = this.raycaster.intersectObjects( this.frames, true );
+		for (let pi = 0; pi < pickIntersects.length; pi++) {
+			const obj = pickIntersects[pi].object;
+			if (obj.userData && obj.userData.project) {
+				// create an HTML card for the modal (keeps existing styling)
+				const htmlCard = this.createProjectCard(obj.userData.project);
+				this.showCardModal(obj.userData.project, htmlCard);
+				this.intersectedFrame.children[1].material.emissive = new THREE.Color(0x000000);
+				this.intersectedFrame.children[1].material.color = new THREE.Color(0x000000);
+				this.intersectedFrame = null; // reset intersected frame to avoid camera movement
+				return;
+			}
+		}
+
 		if (this.intersectedFrame) {
 			// move camera to the front of the frame
 			const framePosition = new THREE.Vector3();
@@ -592,6 +621,74 @@ class App {
 		};
 		
 		return card;
+	}
+
+	createProjectCardCanvas(project) {
+		const width = 800;
+		const height = 500;
+		const canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		const ctx = canvas.getContext('2d');
+
+		// background
+		ctx.fillStyle = '#e3d4c9';
+		ctx.fillRect(0, 0, width, height);
+
+		// title
+		ctx.fillStyle = '#967d53';
+		ctx.font = 'bold 64px Didot serif';
+		ctx.textBaseline = 'top';
+		ctx.fillText(project.title || '', 40, 32);
+
+		// organization and dates
+		ctx.fillStyle = '#967d53';
+		ctx.font = 'bold italic 38px Didot serif';
+		ctx.fillText(project.organization || '', 40, 120);
+		const dates = (project.startDate || '') + (project.endDate ? ' - ' + project.endDate : '');
+		// right align dates
+		ctx.font = 'italic 28px Didot serif';
+		const datesWidth = ctx.measureText(dates).width;
+		ctx.fillText(dates, 40 + (width - 80) - datesWidth, 120);
+
+		// divider
+		ctx.fillStyle = '#967d53';
+		ctx.fillRect(40, 180, width - 80, 2);
+
+		// description (wrap text)
+		ctx.fillStyle = '#967d53';
+		ctx.font = '32px Didot serif';
+		const desc = project.description || '';
+		const maxWidth = width - 80;
+		let y = 210;
+		const lineHeight = 34;
+		const words = desc.split(' ');
+		let line = '';
+		for (let n = 0; n < words.length; n++) {
+			const testLine = line + words[n] + ' ';
+			const metrics = ctx.measureText(testLine);
+			const testWidth = metrics.width;
+			if (testWidth > maxWidth && n > 0) {
+				ctx.fillText(line, 40, y);
+				line = words[n] + ' ';
+				y += lineHeight;
+			} else {
+				line = testLine;
+			}
+		}
+		ctx.fillText(line, 40, y);
+
+		// link text
+		ctx.fillStyle = '#c09f70';
+		ctx.font = '32px Didot serif';
+		ctx.fillText(project.linkText || 'Visit Project', 40, height - 120);
+
+		// tags
+		ctx.fillStyle = '#967d53';
+		ctx.font = '32px Didot serif';
+		ctx.fillText('[' + (project.tags || []).join(', ') + ']', 40, height - 60);
+
+		return canvas;
 	}
 
 	showCardModal(project, cardElement) {

@@ -3,6 +3,8 @@
     --primary-color: #e3d4c9;
     --secondary-color: #967d53;
     --terciary-color: #c09f70;
+
+    --scanner-color: #18c890;
 }
 
 body {
@@ -173,12 +175,11 @@ body {
 .stub-text {
     position: absolute;
     top: 10%;
-    animation: blink 1.5s infinite;
 }
 
 .barcode {
     position: absolute;
-    bottom: 20%;
+    bottom: 25%;
     width: 60%;
     height: 20%;
     background: repeating-linear-gradient(to right,
@@ -231,6 +232,133 @@ body {
     }
 }
 
+/* scanner ticket */  
+/* https://codepen.io/kani339/pen/abBQZop */
+.ocrloader {
+width:180px;
+    height:75px;
+    margin:20px;
+    outline-offset:10px;
+    position:absolute;
+    bottom: 14%;
+    left: 9%;
+  }
+  
+  .ocrloader span::before {
+    content:"";
+    position:absolute;
+    top:5%;
+    bottom:0;
+    left:4%;
+    width:5px;
+    height: 90%;
+    background: var(--scanner-color);
+    box-shadow:0 0 50px 10px  var(--scanner-color);
+    clip-path:inset(0);
+    animation:
+      x 1s ease-in-out infinite alternate,
+      y 1s   ease-in-out infinite;
+  }
+  
+  .ocrloader p::before {
+    content: '';
+    display:inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background:  var(--scanner-color);
+    position: relative;
+    right: 4px;
+  }
+  
+  .ocrloader:before,
+  .ocrloader:after,
+  .ocrloader em:after,
+  .ocrloader em:before {
+    border-color:  var(--scanner-color);
+    content: "";
+    position: absolute;
+    width: 45px;
+    height: 46px;
+    border-style: solid;
+    border-width: 0px;
+  }
+  
+  .ocrloader:before {
+    left: 0;
+    top: 0;
+    border-left-width: 3px;
+    border-top-width: 3px;
+    border-radius: 5px 0 0 0;
+  }
+  
+  .ocrloader:after {
+    right: 0;
+    top: 0;
+    border-right-width: 3px;
+    border-top-width: 3px;
+    border-radius: 0 5px 0 0;
+  }
+  .ocrloader em:before {
+    left: 0;
+    bottom: 0;
+    border-left-width: 3px;
+    border-bottom-width: 3px;
+    border-radius: 0 0 0 5px;
+  }
+  .ocrloader em:after {
+    right: 0;
+    bottom: 0;
+    border-right-width: 3px;
+    border-bottom-width: 3px;
+    border-radius: 0 0 5px 0;
+  }
+
+  .ocrloader-close {
+    animation: close-ocr 0.75s forwards;
+}
+  
+  @keyframes move {
+    0%,
+    100% {
+      transform: translateY(190px);
+    }
+    50% {
+      transform: translateY(0%);
+    }
+    75% {
+      transform: translateY(160px);
+    }
+  }
+  
+  @keyframes x {
+    to {
+      transform:translateX(-100%);
+      left:100%;
+    }
+  }
+  
+  @keyframes y {
+     33% {
+       clip-path:inset(0 0 0 -100px);    
+     }
+     50% {
+       clip-path:inset(0 0 0 0);    
+     }
+     83%{
+       clip-path:inset(0 -100px 0 0); 
+     }
+    
+  }
+
+  @keyframes close-ocr {
+    to {
+      opacity: 0;
+      display: none;
+    }
+    
+  }
+  
 /* UI */
 .main-ui {
     position: absolute;

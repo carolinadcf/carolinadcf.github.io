@@ -131,7 +131,8 @@ class App {
 			this.scene.add( this.museum );
 
 			$( '#preloader-stub' ).addClass('stub-animated');			
-			$( '#preloader' ).addClass('preloader-animated');			
+			$( '#preloader' ).addClass('preloader-animated');		
+			$( '#ocrloader' ).addClass('ocrloader-close');	
 			this.animate();
             }
         );

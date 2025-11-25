@@ -277,6 +277,7 @@ class App {
 				this.textureLoader.load( project.image, (texture) => {
 					texture.colorSpace = THREE.SRGBColorSpace;
 					
+					// CANVAS
 					// plane with image of its size
 					const frameGeometry = new THREE.PlaneGeometry();
 					// adjust plane size based on image aspect ratio
@@ -287,6 +288,7 @@ class App {
 					
 					const frameMaterial = new THREE.MeshStandardMaterial({ map: texture, toneMapped: false});
 					const frame = new THREE.Mesh(frameGeometry, frameMaterial);
+					frame.position.z = 0.05; // slightly in front of back plane
 					this.frames[i].add(frame);
 					
 					// back plane (frame)

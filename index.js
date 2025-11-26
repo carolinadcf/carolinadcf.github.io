@@ -23,6 +23,8 @@ class App {
         this.scene = null;
         this.renderer = null;
         this.camera = null;
+		this.OriginalCameraPosition = new THREE.Vector3(12.5, 3.5, 8);
+		this.OriginalCameraTarget = new THREE.Vector3(2.5, 3, 3);
         this.controls = null;        
 		this.lights = [];
 		
@@ -65,6 +67,14 @@ class App {
 
 		this.labelRenderer = new CSS3DRenderer();
 
+		// contact info
+		this.contactInfo = {
+			github: 'https://github.com/carolinadcf',
+			linkedin: 'https://www.linkedin.com/in/carolina-dcf/',
+			mail: 'mailto:carolina.cdc@outlook.com'
+		};
+		this.contactSelected = null;
+
 		// postprocessing
 		this.composer = null;
 		this.renderPass = null;
@@ -84,7 +94,7 @@ class App {
 		this.renderer.shadowMap.enabled = true;
 		this.renderer.shadowMap.type = THREE.VSMShadowMap;
 		
-        this.renderer.toneMapping = THREE.CineonToneMapping ;
+        this.renderer.toneMapping = THREE.CineonToneMapping;
         this.renderer.toneMappingExposure = 1;
 		document.getElementById('webgl').appendChild(this.renderer.domElement);
 
@@ -95,11 +105,11 @@ class App {
 
 		// camera
 		this.camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 100 );
-		this.camera.position.set( 0, 2, 10 );
+		this.camera.position.copy(this.OriginalCameraPosition);
 
 		// controls
 		this.controls = new OrbitControls( this.camera, this.renderer.domElement );
-		this.controls.target.set( 0, 3, 0 );
+		this.controls.target.copy(this.OriginalCameraTarget);
 		this.controls.maxDistance = 15;
 		this.controls.maxPolarAngle = Math.PI / 2;
 		this.controls.update();
@@ -251,6 +261,22 @@ class App {
             }
         );
 
+		// contact phone
+		this.gltfLoader.load( './data/phone/scene.gltf', ( gltf ) => {
+			this.phone = gltf.scene;
+			this.phone.name = "phone";
+			this.phone.position.set(2.5, 2.5, 9.9);
+			this.phone.scale.set(0.4,0.4,0.4);
+			this.phone.rotation.y = Math.PI;
+
+			// assign light
+			const pointLight = new THREE.PointLight(0xffffff, 1, 2);
+			pointLight.position.set(0, 0, 1);
+			this.phone.add(pointLight);
+
+			this.scene.add( this.phone );
+		});
+
 		// load projects data
 		fetch('./data/cv.json')
 		.then(response => response.json())
@@ -289,7 +315,7 @@ class App {
 					
 					const frameMaterial = new THREE.MeshStandardMaterial({ map: texture, toneMapped: false});
 					const frame = new THREE.Mesh(frameGeometry, frameMaterial);
-					frame.position.z = 0.05; // slightly in front of back plane
+					frame.position.z = 0.01; // slightly in front of back plane
 					this.frames[i].add(frame);
 					
 					// back plane (frame)
@@ -366,12 +392,8 @@ class App {
 
 		// camera back to center
 		document.getElementById('back-button').addEventListener('click', () => {
-			// move camera back to original position
-			const newCameraPosition = new THREE.Vector3(0, 2, 10);
-			const newTargetPosition = new THREE.Vector3(0, 3, 0);
-
 			// animate camera movement
-			this.cameraCinematicMove(newCameraPosition, newTargetPosition, 1000);
+			this.cameraCinematicMove(this.OriginalCameraPosition, this.OriginalCameraTarget, 1000);
 
 			document.getElementById('scene-ui').style.display = 'none';
 		});
@@ -513,7 +535,8 @@ class App {
 				link.target = '_blank';
 			});
 		}
-		else if (this.jukebox) {
+		
+		if (this.jukebox) {
 			const intersectsJukebox = this.raycaster.intersectObject( this.jukebox, true );
 			if (intersectsJukebox.length > 0) {
 				this.selectedJukebox = !this.selectedJukebox;
@@ -538,6 +561,32 @@ class App {
 					// document.getElementById('back-button').style.display = 'inline-block';
 				});
 			}
+		}
+		
+		if (this.phone) {
+			const intersectsPhone = this.raycaster.intersectObject( this.phone, true );
+			if (intersectsPhone.length > 0) {
+				
+				// move camera to front of phone
+				const phonePosition = new THREE.Vector3();
+				this.phone.getWorldPosition(phonePosition);
+				const phoneNormal = new THREE.Vector3(0, 0, 1);
+				phoneNormal.applyQuaternion(this.phone.quaternion);
+
+				const newCameraPosition = phonePosition.clone().add(phoneNormal.clone().multiplyScalar(2));
+
+				// animate camera movement
+				this.cameraCinematicMove(newCameraPosition, phonePosition, 1000, () => {
+					// document.getElementById('back-button').style.display = 'inline-block';
+				});
+			}
+		}
+
+		// contact info
+		if (this.contactSelected) {
+			const link = this.contactInfo[this.contactSelected];
+			this.contactSelected = null;
+			window.open(link, '_blank');
 		}
 	}
 
@@ -605,6 +654,41 @@ class App {
 				if (this.mixerMusic) {
 					this.mixerMusic.timeScale = 0;
 					if (this.sound.isPlaying) this.sound.pause(); // if sound playing, pause
+				}
+			}
+		}
+
+		// phone interaction
+		if (this.phone) {
+			const intersectsPhone = this.raycaster.intersectObject( this.phone, true );
+			if (intersectsPhone.length > 0) {
+				// outline phone
+				this.selectedObjects = [ this.phone ];
+				this.contactSelected = null;
+
+				// traverse up to find if rrss group
+				for ( let i = 0; i < intersectsPhone.length; i++ ) {
+					let obj = intersectsPhone[0].object;
+					while (obj.parent && obj.parent !== this.phone) {
+						obj = obj.parent;
+						if (obj.name === "github") {
+							$('html, body').css('cursor', 'pointer');
+							console.log('github');
+							this.selectedObjects = [ obj ];
+							this.contactSelected = 'github';
+						} else if (obj.name === "linkedin") {
+							$('html, body').css('cursor', 'pointer');
+							console.log('linkedin');
+							this.selectedObjects = [ obj ];
+							this.contactSelected = 'linkedin';
+						} else if (obj.name === "mail") {
+							$('html, body').css('cursor', 'pointer');
+							console.log('mail');
+							this.selectedObjects = [ obj ];
+							this.contactSelected = 'mail';
+						}
+					}
+
 				}
 			}
 		}

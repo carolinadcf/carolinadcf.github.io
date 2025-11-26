@@ -507,6 +507,7 @@ class App {
 				// show visit link and back button
 				document.getElementById('scene-ui').style.display = 'flex';
 				// add clickable functional link
+				const project = this.projects[this.currentFrameIndex];
 				var link = document.getElementById('visit-link-button');
 				link.href = project.link;
 				link.target = '_blank';

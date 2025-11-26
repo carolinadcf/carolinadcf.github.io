@@ -506,6 +506,10 @@ class App {
 			this.cameraCinematicMove(newCameraPosition, framePosition, 1000, () => {
 				// show visit link and back button
 				document.getElementById('scene-ui').style.display = 'flex';
+				// add clickable functional link
+				var link = document.getElementById('visit-link-button');
+				link.href = project.link;
+				link.target = '_blank';
 			});
 		}
 		else if (this.jukebox) {

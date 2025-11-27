@@ -59,6 +59,7 @@ body {
     animation-delay: 2.5s;
     animation-timing-function: ease-in-out;
     animation-fill-mode: forwards;
+    pointer-events: none;
 }
 
 .ticket {

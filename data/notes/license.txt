@@ -1,0 +1,8 @@
+Model Information:
+* title:	Notes
+* source:	https://sketchfab.com/3d-models/notes-979567859cf14970bcee47938db9f1f3
+* author:	LUST Man (https://sketchfab.com/Lustman)
+
+Model License:
+* license type:	SKETCHFAB Standard (https://sketchfab.com/licenses)
+* requirements:	Under basic restrictions, use worldwide, on all types of media, commercially or not, and in all types of derivative works

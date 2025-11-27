@@ -1,5 +1,5 @@
 export const UIState = {
-    interactionEnabled: true
+    interactionEnabled: false
 };
 
 export function initUI() {
@@ -110,5 +110,6 @@ export function initUI() {
             }
         }
     // end of book animation
-
+    
+    UIState.interactionEnabled = true;
 }

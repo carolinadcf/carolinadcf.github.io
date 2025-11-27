@@ -9,6 +9,7 @@ import { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
 import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 
 class App {
 
@@ -95,13 +96,14 @@ class App {
 		this.renderer.shadowMap.type = THREE.VSMShadowMap;
 		
         this.renderer.toneMapping = THREE.CineonToneMapping;
-        this.renderer.toneMappingExposure = 1;
 		document.getElementById('webgl').appendChild(this.renderer.domElement);
 
 		// label renderer
 		this.labelRenderer.setSize( window.innerWidth, window.innerHeight );
+		this.labelRenderer.domElement.style.pointerEvents = 'none';
+		document.body.appendChild(this.labelRenderer.domElement);
 		// this.labelRenderer.domElement.style.pointerEvents = 'none';
-		document.getElementById('css').appendChild(this.labelRenderer.domElement);
+		// document.getElementById('css').appendChild(this.labelRenderer.domElement);
 
 		// camera
 		this.camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 100 );
@@ -265,16 +267,78 @@ class App {
 		this.gltfLoader.load( './data/phone/scene.gltf', ( gltf ) => {
 			this.phone = gltf.scene;
 			this.phone.name = "phone";
-			this.phone.position.set(2.5, 2.5, 9.9);
+			this.phone.position.set(2.7, 2.5, 9.9);
 			this.phone.scale.set(0.4,0.4,0.4);
 			this.phone.rotation.y = Math.PI;
 
+			gltf.scene.traverse(function (child) {
+				if (child.isMesh) {
+					child.castShadow = true;
+					child.receiveShadow = true;
+					const prevMat = child.material;
+					child.material = new THREE.MeshStandardMaterial({
+						map: prevMat.map,
+						color: prevMat.color,
+						normalMap: prevMat.normalMap,
+						metalnessMap: prevMat.metalnessMap,
+						roughnessMap: prevMat.roughnessMap,
+					});
+				}
+			});
+
 			// assign light
-			const pointLight = new THREE.PointLight(0xffffff, 1, 2);
+			const pointLight = new THREE.PointLight(0xffffff, 1.5, 2);
 			pointLight.position.set(0, 0, 1);
 			this.phone.add(pointLight);
 
 			this.scene.add( this.phone );
+		});
+
+		// contact note pad
+		this.gltfLoader.load( './data/notes/scene.gltf', ( gltf ) => {
+			this.notePad = gltf.scene;
+			this.notePad.name = "contactNote";
+
+			this.notePad.position.set(2, 2.5, 10);
+			this.notePad.scale.set(0.07,0.07,0.07);
+			this.notePad.rotation.x = -Math.PI/2;
+			this.notePad.rotation.y = Math.PI;
+
+			gltf.scene.traverse(function (child) {
+				if (child.isMesh) {
+					child.castShadow = true;
+					child.receiveShadow = true;
+				}
+			});
+
+			// add css2d to note pad with contact info
+			const contactInfoElement = document.createElement('div');
+			contactInfoElement.className = 'contact-info';
+			contactInfoElement.innerHTML = `
+				<h3>Contact Info:</h3>
+				<p>GitHub: </p> 
+					<span>&emsp; @carolinadcf</span>
+				<p>LinkedIn: </p> 
+					<span>&emsp; @carolina-dcf</span>
+				<p>Email: </p> 
+					<span>&emsp; carolina.cdc@outlook.com</span>
+				<p>Call me!!</p>
+				<img src="./data/book/turn-right-arrow.png" alt="Arrow pointing to the phone"
+                        style="max-width: 17%; margin-left: 0%; margin-bottom: 0; transform: rotate(-90deg); filter: brightness(70%);" />
+			`;
+			
+			// make texture from element
+			const contactInfoLabel = new CSS3DObject(contactInfoElement);
+			contactInfoLabel.element.style.pointerEvents = 'auto';
+			contactInfoLabel.element.style.userSelect = 'auto';
+			contactInfoLabel.element.style.backfaceVisibility = 'hidden';
+			contactInfoLabel.scale.set(0.02, 0.02, 0.02);
+			contactInfoLabel.rotation.x = -Math.PI/2;
+			contactInfoLabel.position.set(0.8, 0.2, -0.1); // x, z, -y
+			
+			this.notePad.add(contactInfoLabel);
+
+			this.scene.add( this.notePad );
 		});
 
 		// load projects data
@@ -365,6 +429,7 @@ class App {
 		this.outlinePass.edgeStrength = 3.0;
 		this.outlinePass.edgeGlow = 0.3;
 		this.outlinePass.pulsePeriod = 2;
+		this.outlinePass.hiddenEdgeColor.set(0xffffff);
 
 		this.composer.addPass(this.outlinePass);
 

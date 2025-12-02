@@ -258,22 +258,18 @@
     <!-- detect if on mobile via feature detection -->
     <!-- https://medium.com/geekculture/detecting-mobile-vs-desktop-browsers-in-javascript-ad46e8d23ce5 -->
     <script type="module">
-        function hasTouchSupport() {
-            return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        function isMobile() {
+            const minWidth = 768; // Minimum width for desktop devices
+            return window.innerWidth < minWidth || screen.width < minWidth;
         }
 
-        if (false) {
-            console.log("Mobile device detected");
-            // show mobile text
-            document.querySelector('.mobile-text').style.display = 'block';
+        if (isMobile()) {
+            document.querySelector('.mobile-text').style.display = 'block'; // show mobile text
             // hide preloader and ui
             document.getElementById('preloader').style.display = 'none';
             document.querySelector('.main-ui').style.display = 'none';
         } else {
-            console.log("Desktop device detected");
-            // hide mobile text
-            document.querySelector('.mobile-text').style.display = 'none';
-            // run index.js
+            document.querySelector('.mobile-text').style.display = 'none'; // hide mobile text
             import('./index.js');
         }
     </script>

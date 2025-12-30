@@ -53,12 +53,16 @@ class App {
 		this.mixerAvatar = null;
 
 		// actions
-		this.currentAction = 'sad';
-		this.idleAction = 'sad';
+		this.idleAction = 'holding';
+		this.currentAction = this.idleAction;
 		this.baseActions = {
-			sad: {weight: 1},
-			wave: {weight: 0}
+			breathe: {weight: 0},
+			look: {weight: 0},
+			sad: {weight: 0},
+			wave: {weight: 0},
+			holding: {weight: 0}
 		};
+		this.baseActions[this.idleAction].weight = 1;
 
 		// positional audio for record player
 		this.jukebox = null;
@@ -187,14 +191,14 @@ class App {
 			// Create an AnimationMixer for your avatar
 			this.mixerAvatar = new THREE.AnimationMixer(this.carol);
 
-			// Load the Mixamo animation
-			this.gltfLoader.load('./data/animations/sad.glb', (gltf) => {
+			// load idle animation
+			this.gltfLoader.load('./data/animations/' + this.idleAction + '.glb', (gltf) => {
 				const animation = gltf.animations[0];  // Assuming it's the first animation
-				animation.name = "sad"; // rename animation
+				animation.name = this.idleAction; // rename animation
 				
 				// Create an action for the Mixamo animation and play it
-				this.baseActions.sad.action = this.mixerAvatar.clipAction(animation);
-				this.baseActions.sad.action.play();
+				this.baseActions[this.idleAction].action = this.mixerAvatar.clipAction(animation);
+				this.baseActions[this.idleAction].action.play();
 				}, undefined, function(error) {
 				console.error('An error occurred while loading the animation:', error);
 			});
@@ -213,7 +217,7 @@ class App {
 				console.error('An error occurred while loading the animation:', error);
 			});
 
-			// when wave ends, go back to idle (sad)
+			// when wave ends, go back to idle (look)
 			this.mixerAvatar.addEventListener('finished', (e) => {
 				if (e.action === this.baseActions.wave.action) {
 					this.swapAnimations(this.idleAction);

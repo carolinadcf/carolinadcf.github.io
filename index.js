@@ -217,7 +217,7 @@ class App {
 				console.error('An error occurred while loading the animation:', error);
 			});
 
-			// when wave ends, go back to idle (look)
+			// when wave ends, go back to idle
 			this.mixerAvatar.addEventListener('finished', (e) => {
 				if (e.action === this.baseActions.wave.action) {
 					this.swapAnimations(this.idleAction);

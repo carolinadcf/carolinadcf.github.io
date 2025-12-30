@@ -18,8 +18,6 @@ class App {
         this.fps = 0;
         this.elapsedTime = 0; // clock is ok but might need more time control to dinamicaly change signing speed
         this.clock = new THREE.Clock();
-		this.day = 0;
-		this.dayData = 0;
 
         this.scene = null;
         this.renderer = null;
@@ -27,7 +25,6 @@ class App {
 		this.OriginalCameraPosition = new THREE.Vector3(12.5, 3.5, 8);
 		this.OriginalCameraTarget = new THREE.Vector3(2.5, 3, 3);
         this.controls = null;        
-		this.lights = [];
 		
 		// projects and frames
 		this.projects = [];
@@ -85,12 +82,40 @@ class App {
 		this.renderPass = null;
 		this.outlinePass = null;
 		this.selectedObjects = [ ];
+
+		// light
+		this.lights = [];
+		this.day = true;
+		this.lightTransition = null; // transition state (used for smooth day/night lerp)
+		this.lightConfig = {
+			day: {
+				ambientIntensity: 1.0,
+				ambientColor: new THREE.Color("#ffffff"),
+				dirIntensity: 1.0,
+				dirColor: new THREE.Color("#ffffff"),
+				bgColor: new THREE.Color("#657aa2"),
+				exposure: 1.0,
+				frameIntensity: 0.0,
+				avatarLightIntensity: 0.0
+			},
+			night:
+			{
+				ambientIntensity: 0.75,
+				ambientColor: new THREE.Color("#2a3b4f"),
+				dirIntensity: 0.45,
+				dirColor: new THREE.Color("#99bbff"),
+				bgColor: new THREE.Color("#071226"),
+				exposure: 0.8,
+				frameIntensity: 1.5,
+				avatarLightIntensity: 2.0
+			}
+		};
 	}
 
 	init( ) {
 		// scene
 		this.scene = new THREE.Scene();
-		this.scene.background = new THREE.Color( 0x4d575e );
+		this.scene.background = this.day ? this.lightConfig.day.bgColor.clone() : this.lightConfig.night.bgColor.clone();
 
 		// renderer
 		this.renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true } );
@@ -100,13 +125,13 @@ class App {
 		this.renderer.shadowMap.type = THREE.VSMShadowMap;
 		
         this.renderer.toneMapping = THREE.CineonToneMapping;
+		this.renderer.toneMappingExposure = this.day ? this.lightConfig.day.exposure : this.lightConfig.night.exposure;
 		document.getElementById('webgl').appendChild(this.renderer.domElement);
 
 		// label renderer
 		this.labelRenderer.setSize( window.innerWidth, window.innerHeight );
 		this.labelRenderer.domElement.style.pointerEvents = 'none';
 		document.body.appendChild(this.labelRenderer.domElement);
-		// this.labelRenderer.domElement.style.pointerEvents = 'none';
 		// document.getElementById('css').appendChild(this.labelRenderer.domElement);
 
 		// camera
@@ -185,8 +210,8 @@ class App {
 			
 			this.scene.add( this.carol );
 
-			const skeleton = new THREE.SkeletonHelper(this.carol);
-			// this.scene.add(skeleton);  // Optional: to visualize the skeleton
+			// const skeleton = new THREE.SkeletonHelper(this.carol);
+			// this.scene.add(skeleton);
 	
 			// Create an AnimationMixer for your avatar
 			this.mixerAvatar = new THREE.AnimationMixer(this.carol);
@@ -223,6 +248,15 @@ class App {
 					this.swapAnimations(this.idleAction);
 				}
 			});
+
+			// light for avatar
+			const avatarLight = new THREE.SpotLight(0xffffff, 2.0, 10, Math.PI / 6, 0.2, 2);
+			avatarLight.position.set(0, 3, 2);
+			avatarLight.target = this.carol;
+			// identify the light
+			avatarLight.name = 'avatarLight';
+			this.carol.userData.avatarLight = avatarLight;
+			this.carol.add(avatarLight);
 		});
 
 		// jukebox
@@ -414,6 +448,14 @@ class App {
 					// attach project data for click handling
 					cardMesh.userData.project = project;
 					this.frames[i].add(cardMesh);
+
+					// add a small light to highlight the frame at night (start off)
+					const frameLight = new THREE.SpotLight(0xfff2c8, 0.0, 6, Math.PI / 4, 0.3, 2);
+					frameLight.position.set(0, 2, 1);
+					frameLight.target = backPlane;
+					frameLight.name = 'frameLight';
+					this.frames[i].add(frameLight);
+					this.frames[i].userData.frameLight = frameLight;
 				});
 
 				// add to scene
@@ -452,6 +494,7 @@ class App {
 		window.addEventListener( 'resize', this.onWindowResize.bind(this) );
 		window.addEventListener( 'mousemove', this.onMouseMove.bind(this), false );
 		window.addEventListener( 'click', this.onMouseClick.bind(this), false );
+		window.addEventListener( 'keydown', this.onKeyDown.bind(this), false );
 		
 		// remove UI when moving camera
 		this.controls.addEventListener( 'change', () => {
@@ -524,26 +567,119 @@ class App {
 		}
 		
 		this.controls.update();
+
+		// update smooth light transition if active
+		if (this.lightTransition && this.lightTransition.active) {
+			const now = performance.now();
+			const lt = this.lightTransition;
+			const t = Math.min((now - lt.start) / lt.duration, 1);
+
+			// lerp numeric values
+			const lerp = (a, b, v) => a + (b - a) * v;
+			this.ambientLight.intensity = lerp(lt.from.ambientIntensity, lt.to.ambientIntensity, t);
+			this.dirLight.intensity = lerp(lt.from.dirIntensity, lt.to.dirIntensity, t);
+			if (this.carol && this.carol.userData.avatarLight) {
+				this.carol.userData.avatarLight.intensity = lerp(lt.from.avatarLightIntensity, lt.to.avatarLightIntensity, t);
+			}
+			this.renderer.toneMappingExposure = lerp(lt.from.exposure, lt.to.exposure, t);
+
+			// lerp colors
+			this.ambientLight.color.lerpColors(lt.from.ambientColor, lt.to.ambientColor, t);
+			this.dirLight.color.lerpColors(lt.from.dirColor, lt.to.dirColor, t);
+			if (this.scene.background && lt.from.bgColor && lt.to.bgColor) {
+				this.scene.background.lerpColors(lt.from.bgColor, lt.to.bgColor, t);
+			}
+
+			// lerp per-frame lights (if present)
+			if (lt.to.frameIntensity !== undefined) {
+				for (let f of this.frames) {
+					if (f.userData && f.userData.frameLight) {
+						const fl = f.userData.frameLight;
+						const fromVal = (lt.from.frameLightMap && lt.from.frameLightMap[f.uuid] !== undefined) ? lt.from.frameLightMap[f.uuid] : fl.intensity;
+						fl.intensity = lerp(fromVal, lt.to.frameIntensity, t);
+					}
+				}
+			}
+
+			if (t >= 1) {
+				this.lightTransition.active = false;
+				this.day = lt.targetDay ? true : false;
+			}
+		}
 		
 		this.composer.render();
 		this.labelRenderer.render( this.scene, this.camera );
 	}
 
 	addLights() {
-		const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
-		this.scene.add(ambientLight);
-
-		const dirLight = new THREE.DirectionalLight( 0xffffff, 1 );
-		dirLight.position.set( -2, 10, 0 );
-		dirLight.castShadow = true;
-		dirLight.shadow.radius = 4;
-		dirLight.shadow.bias = - 0.0005;
-
+		// initial lights
+		this.ambientLight = new THREE.AmbientLight(this.lightConfig.day.ambientColor, this.lightConfig.day.ambientIntensity);
+		this.scene.add(this.ambientLight);
+		
+		this.dirLight = new THREE.DirectionalLight( this.lightConfig.day.dirColor, this.lightConfig.day.dirIntensity );
+		this.dirLight.position.set( -2, 10, 0 );
+		this.dirLight.castShadow = true;
+		this.dirLight.shadow.radius = 4;
+		this.dirLight.shadow.bias = - 0.0005;
+		
 		const dirGroup = new THREE.Group();
-		dirGroup.add( dirLight );
+		dirGroup.add( this.dirLight );
 		this.scene.add( dirGroup );
+		
+		this.lights.push(this.ambientLight, this.dirLight);
+	}
 
-		this.lights.push(ambientLight, dirLight);
+	startLightTransition(targetDay, duration = 1200) {
+		// capture from/to states
+		let from = {
+			ambientIntensity: this.ambientLight.intensity,
+			ambientColor: this.ambientLight.color.clone(),
+			dirIntensity: this.dirLight.intensity,
+			dirColor: this.dirLight.color.clone(),
+			bgColor: this.scene.background ? this.scene.background.clone() : new THREE.Color(0x000000),
+			exposure: (this.renderer.toneMappingExposure !== undefined) ? this.renderer.toneMappingExposure : 1.0,
+			avatarLightIntensity: (this.carol && this.carol.userData.avatarLight) ? this.carol.userData.avatarLight.intensity : 0.0
+		};
+
+		// capture current per-frame light intensities (map by frame uuid)
+		from.frameLightMap = {};
+		for (let f of this.frames) {
+			if (f.userData && f.userData.frameLight) {
+				from.frameLightMap[f.uuid] = f.userData.frameLight.intensity;
+			}
+		}
+
+		let to = {
+			ambientIntensity: targetDay ? this.lightConfig.day.ambientIntensity : this.lightConfig.night.ambientIntensity,
+			ambientColor: targetDay ? this.lightConfig.day.ambientColor.clone() : this.lightConfig.night.ambientColor.clone(),
+			dirIntensity: targetDay ? this.lightConfig.day.dirIntensity : this.lightConfig.night.dirIntensity,
+			dirColor: targetDay ? this.lightConfig.day.dirColor.clone() : this.lightConfig.night.dirColor.clone(),
+			bgColor: targetDay ? this.lightConfig.day.bgColor.clone() : this.lightConfig.night.bgColor.clone(),
+			exposure: targetDay ? this.lightConfig.day.exposure : this.lightConfig.night.exposure,
+			frameIntensity: targetDay ? this.lightConfig.day.frameIntensity : this.lightConfig.night.frameIntensity,
+			avatarLightIntensity: targetDay ? this.lightConfig.day.avatarLightIntensity : this.lightConfig.night.avatarLightIntensity
+		};
+
+		this.lightTransition = {
+			active: true,
+			start: performance.now(),
+			duration: duration,
+			from: from,
+			to: to,
+			targetDay: targetDay
+		};
+	}
+	
+	onKeyDown(event) {
+		if (!event.key) return;
+		const key = event.key.toLowerCase();
+		
+		switch (key) {
+			case 'n':
+			const targetDay = !this.day;
+			this.startLightTransition(targetDay, 1200);
+			break;
+		}
 	}
 
 	onMouseMove( event ) {

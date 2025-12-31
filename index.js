@@ -8,6 +8,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
+import { securityShader } from './data/shaders/shader atlas.js';
 import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 
@@ -495,6 +496,10 @@ class App {
 		this.effectFXAA = new ShaderPass(FXAAShader);
 		this.effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight);
 		this.composer.addPass(this.effectFXAA);
+		
+		// black and white shader
+		// this.securityShader = new ShaderPass(securityShader);
+		// this.composer.addPass(this.securityShader);
 		// end postprocessing
 
 		// initialize UI
@@ -620,6 +625,10 @@ class App {
 			}
 		}
 		
+		// update security shader time
+		// this.securityShader.uniforms['time'].value += delta;
+
+		// render
 		this.composer.render();
 		this.labelRenderer.render( this.scene, this.camera );
 	}

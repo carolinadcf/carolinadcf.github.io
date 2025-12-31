@@ -418,6 +418,7 @@ class App {
 					const frameMaterial = new THREE.MeshStandardMaterial({ map: texture, toneMapped: false});
 					const frame = new THREE.Mesh(frameGeometry, frameMaterial);
 					frame.position.z = 0.01; // slightly in front of back plane
+					frame.name = "frameImage";
 					this.frames[i].add(frame);
 					
 					// back plane (frame)
@@ -426,6 +427,7 @@ class App {
 					const backMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
 					const backPlane = new THREE.Mesh(backGeometry, backMaterial);
 					backPlane.position.z = -0.01; // slightly behind the image
+					backPlane.name = "frameBack";
 					this.frames[i].add(backPlane);
 
 					// bottom right of the frame
@@ -447,15 +449,26 @@ class App {
 					cardMesh.position.set( x, y, 0.01 ); // slightly in front of frame image
 					// attach project data for click handling
 					cardMesh.userData.project = project;
+					cardMesh.name = "cardMesh";
 					this.frames[i].add(cardMesh);
-
+					
 					// add a small light to highlight the frame at night (start off)
-					const frameLight = new THREE.SpotLight(0xfff2c8, 0.0, 6, Math.PI / 4, 0.3, 2);
-					frameLight.position.set(0, 2, 1);
+					const frameLight = new THREE.SpotLight(0xfff2c8, 0.0, 6, Math.PI / 3, 0.3, 2);
+					frameLight.position.set(0, 1.6, 1);
 					frameLight.target = backPlane;
 					frameLight.name = 'frameLight';
 					this.frames[i].add(frameLight);
 					this.frames[i].userData.frameLight = frameLight;
+					
+					// wall lamps model
+					this.gltfLoader.load( './data/wall_lamp/scene.gltf', ( gltf ) => {
+						const wallLamp = gltf.scene;
+						wallLamp.scale.set(0.005,0.005,0.005);
+						wallLamp.position.set(0, 1.6, 0.5);
+						wallLamp.name = "wallLamp";
+						
+						this.frames[i].add( wallLamp );
+					});
 				});
 
 				// add to scene
@@ -706,8 +719,7 @@ class App {
 				// create an HTML card for the modal (keeps existing styling)
 				const htmlCard = this.createProjectCard(obj.userData.project);
 				this.showCardModal(obj.userData.project, htmlCard);
-				this.intersectedFrame.children[1].material.emissive = new THREE.Color(0x000000);
-				this.intersectedFrame.children[1].material.color = new THREE.Color(0x000000);
+
 				this.intersectedFrame = null; // reset intersected frame to avoid camera movement
 				return;
 			}
@@ -804,8 +816,8 @@ class App {
 		
 		// reset all frames
 		this.frames.forEach( (frame) => {
-			frame.children[1].material.emissive = new THREE.Color(0x000000);
-			frame.children[1].material.color = new THREE.Color(0x000000);
+			frame.getObjectByName("frameBack").material.emissive = new THREE.Color(0x000000);
+			frame.getObjectByName("frameBack").material.color = new THREE.Color(0x000000);
 		});
 		
 		// highlight intersected frame
@@ -817,13 +829,18 @@ class App {
 			};
 			// highlight border of frame
 			this.intersectedFrame = intersects[i].object.parent;
-			this.intersectedFrame.children[1].material.color = new THREE.Color(0xffffff);
-			this.intersectedFrame.children[1].material.emissive = new THREE.Color(0xffffff);
-			this.currentFrameIndex = this.frames.indexOf(this.intersectedFrame);
+			try {
+				this.intersectedFrame.getObjectByName("frameBack").material.emissive = new THREE.Color(0xffffff);
+				this.intersectedFrame.getObjectByName("frameBack").material.color = new THREE.Color(0xffffff);
+				this.currentFrameIndex = this.frames.indexOf(this.intersectedFrame);
+			} catch (e) {
+				// in case intersected object is not part of a frame (light, wall lamp, etc)
+				this.intersectedFrame = null;
+			}
 		}
 		
 		// change cursor style
-		if ( intersects.length > 0 ) { $('html, body').css('cursor', 'pointer'); }
+		if ( intersects.length > 0 && this.intersectedFrame ) { $('html, body').css('cursor', 'pointer'); }
 		else {
 			$('html, body').css('cursor', 'default');
 			this.intersectedFrame = null;

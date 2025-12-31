@@ -1,0 +1,11 @@
+Model Information:
+* title:	Wall lamp
+* source:	https://sketchfab.com/3d-models/wall-lamp-e053f18243224866b3768f0257510b56
+* author:	hysokana (https://sketchfab.com/hysokana)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Wall lamp" (https://sketchfab.com/3d-models/wall-lamp-e053f18243224866b3768f0257510b56) by hysokana (https://sketchfab.com/hysokana) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

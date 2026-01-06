@@ -480,6 +480,22 @@ class App {
 			console.error('Error loading projects data:', error);
 		});
 
+		// security camera
+		this.gltfLoader.load( './data/security_camera/scene.gltf', ( gltf ) => {
+			this.securityCamera = gltf.scene;
+			this.securityCamera.name = "securityCamera";
+			this.securityCamera.position.set(9.5, 5.5, -9.5);
+			this.securityCamera.scale.set(0.3,0.3,0.3);
+			this.securityCamera.rotation.y = -Math.PI / 4;
+			gltf.scene.traverse(function (child) {
+				if (child.isMesh) {
+					child.castShadow = true;
+					child.receiveShadow = true;
+				}
+			});
+			this.scene.add(this.securityCamera);
+		});
+
 		// postprocessing
 		this.composer = new EffectComposer(this.renderer);
 		this.renderPass = new RenderPass(this.scene, this.camera);
@@ -498,8 +514,9 @@ class App {
 		this.composer.addPass(this.effectFXAA);
 		
 		// black and white shader
-		// this.securityShader = new ShaderPass(securityShader);
-		// this.composer.addPass(this.securityShader);
+		this.securityShader = new ShaderPass(securityShader);
+		this.securityShader.enabled = false;
+		this.composer.addPass(this.securityShader);
 		// end postprocessing
 
 		// initialize UI
@@ -567,7 +584,6 @@ class App {
 		this.labelRenderer.setSize( window.innerWidth, window.innerHeight );
 
 		this.animate();
-
 	}
 
     animate() {
@@ -626,7 +642,7 @@ class App {
 		}
 		
 		// update security shader time
-		// this.securityShader.uniforms['time'].value += delta;
+		this.securityShader.uniforms['time'].value += delta;
 
 		// render
 		this.composer.render();
@@ -692,6 +708,35 @@ class App {
 		};
 	}
 	
+	toggleSecurityMode() {
+		this.securityShader.enabled = !this.securityShader.enabled;
+		this.outlinePass.enabled = !this.securityShader.enabled;
+		// disable controls when security shader is on
+		UIState.interactionEnabled = !this.securityShader.enabled;
+		this.controls.enabled = !this.securityShader.enabled;
+
+		// MOVE CAMERA
+		if (!this.securityShader.enabled) {
+			// move back to original position
+			this.cameraCinematicMove(this.OriginalCameraPosition, this.OriginalCameraTarget, 1000);
+			return;
+		}
+		
+		// move camera to front of security camera position
+		const cameraPosition = new THREE.Vector3();
+		this.securityCamera.getWorldPosition(cameraPosition);
+		// slight offset forward
+		cameraPosition.x -= 0.8;
+		cameraPosition.z += 0.75;
+		cameraPosition.y -= 0.5;
+		const cameraNormal = new THREE.Vector3(0, 0, -1);
+		cameraNormal.applyQuaternion(this.securityCamera.quaternion);
+		const newCameraPosition = cameraPosition.clone().add(cameraNormal.clone());
+
+		// animate camera movement
+		this.cameraCinematicMove(newCameraPosition, cameraPosition, 1000);
+	}
+	
 	onKeyDown(event) {
 		if (!event.key) return;
 		const key = event.key.toLowerCase();
@@ -701,6 +746,13 @@ class App {
 			const targetDay = !this.day;
 			this.startLightTransition(targetDay, 1200);
 			break;
+			case 'g': // security camera shader
+			this.toggleSecurityMode();
+			break;
+			case 'escape': // exit security camera mode
+			if (this.securityShader.enabled) {
+				this.toggleSecurityMode();
+			}
 		}
 	}
 
@@ -814,6 +866,14 @@ class App {
 			this.contactSelected = null;
 			window.open(link, '_blank');
 		}
+
+		// secutiry camera
+		if (this.securityCamera) {
+			const intersectsCamera = this.raycaster.intersectObject( this.securityCamera, true );
+			if (intersectsCamera.length > 0) {
+				this.toggleSecurityMode();
+			}
+		}
 	}
 
 	checkIntersections() {
@@ -923,6 +983,17 @@ class App {
 				}
 			}
 		}
+
+		// security camera interaction
+		if (this.securityCamera) {
+			const intersectsCamera = this.raycaster.intersectObject( this.securityCamera, true );
+			if (intersectsCamera.length > 0) {
+				// outline security camera
+				this.selectedObjects = [ this.securityCamera ];
+			}
+		}
+
+		// update outline pass
 		this.outlinePass.selectedObjects = this.selectedObjects;
 	}
 

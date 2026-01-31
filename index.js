@@ -804,8 +804,12 @@ class App {
 
 			// animate camera movement
 			this.cameraCinematicMove(newCameraPosition, framePosition, 1000, () => {
-				// show visit link and back button
+				// show full scene UI (back + prev/next + visit)
 				document.getElementById('scene-ui').style.display = 'flex';
+				document.getElementById('back-button').style.display = 'inline-block';
+				document.getElementById('prev-button').style.display = 'inline-block';
+				document.getElementById('next-button').style.display = 'inline-block';
+				document.getElementById('visit-link-button').style.display = 'inline-block';
 				// add clickable functional link
 				const project = this.projects[this.currentFrameIndex];
 				var link = document.getElementById('visit-link-button');
@@ -836,7 +840,12 @@ class App {
 
 				// animate camera movement
 				this.cameraCinematicMove(newCameraPosition, jukeboxPosition, 1000, () => {
-					// document.getElementById('back-button').style.display = 'inline-block';
+					// show only back to center button for jukebox view
+					document.getElementById('scene-ui').style.display = 'flex';
+					document.getElementById('back-button').style.display = 'inline-block';
+					document.getElementById('prev-button').style.display = 'none';
+					document.getElementById('next-button').style.display = 'none';
+					document.getElementById('visit-link-button').style.display = 'none';
 				});
 			}
 		}
@@ -855,7 +864,12 @@ class App {
 
 				// animate camera movement
 				this.cameraCinematicMove(newCameraPosition, phonePosition, 1000, () => {
-					// document.getElementById('back-button').style.display = 'inline-block';
+					// show only back to center button for phone view
+					document.getElementById('scene-ui').style.display = 'flex';
+					document.getElementById('back-button').style.display = 'inline-block';
+					document.getElementById('prev-button').style.display = 'none';
+					document.getElementById('next-button').style.display = 'none';
+					document.getElementById('visit-link-button').style.display = 'none';
 				});
 			}
 		}

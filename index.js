@@ -542,6 +542,7 @@ class App {
 			// animate camera movement
 			this.cameraCinematicMove(this.OriginalCameraPosition, this.OriginalCameraTarget, 1000);
 
+			this.carol.isSelected = false;
 			document.getElementById('scene-ui').style.display = 'none';
 		});
 		// previous artwork
@@ -878,6 +879,8 @@ class App {
 		if (this.carol) {
 			const intersectsAvatar = this.raycaster.intersectObject( this.carol, true );
 			if (intersectsAvatar.length > 0) {
+				this.carol.isSelected = true;
+
 				// move camera to me
 				const avatarPosition = new THREE.Vector3();
 				this.carol.getWorldPosition(avatarPosition);
@@ -996,7 +999,7 @@ class App {
 		}
 		
 		// my avatar interaction
-		if (this.carol) {
+		if (this.carol && !this.carol.isSelected) {
 			const intersectsAvatar = this.raycaster.intersectObject( this.carol, true );
 			if (intersectsAvatar.length > 0) {
 				// play wave animation
@@ -1005,6 +1008,8 @@ class App {
 				}
 				// outline avatar
 				this.selectedObjects = [ this.carol ];
+				// say click me message
+				this.showTalkMessage("Click me to say hi! this is a very long text to see how it gets displayed.", 2000);
 			}
 		}
 

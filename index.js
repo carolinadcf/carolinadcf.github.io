@@ -933,6 +933,10 @@ class App {
 		if (this.speechBubble) {
 			this.carol.remove(this.speechBubble);
 			this.speechBubble = null;
+			if (this.bubbleTimeout) {
+				clearTimeout(this.bubbleTimeout);
+				this.bubbleTimeout = null;
+			}
 		}
 
 		// create bubble DOM element
@@ -951,7 +955,7 @@ class App {
 		this.carol.add(label);
 
 		// auto-remove after duration
-		setTimeout(() => {
+		this.bubbleTimeout = setTimeout(() => {
 			if (this.speechBubble) {
 				this.carol.remove(this.speechBubble);
 				this.speechBubble = null;
@@ -1009,7 +1013,7 @@ class App {
 				// outline avatar
 				this.selectedObjects = [ this.carol ];
 				// say click me message
-				this.showTalkMessage("Click me to say hi! this is a very long text to see how it gets displayed.", 2000);
+				this.showTalkMessage("Click me to say hi!", 2000);
 			}
 		}
 

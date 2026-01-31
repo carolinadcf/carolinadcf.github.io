@@ -1,0 +1,11 @@
+Model Information:
+* title:	Security camera
+* source:	https://sketchfab.com/3d-models/security-camera-e0657ce75f374f1e911e00f710046572
+* author:	Danylo Tyupa (https://sketchfab.com/danzl0)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Security camera" (https://sketchfab.com/3d-models/security-camera-e0657ce75f374f1e911e00f710046572) by Danylo Tyupa (https://sketchfab.com/danzl0) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

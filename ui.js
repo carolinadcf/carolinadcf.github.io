@@ -111,5 +111,10 @@ export function initUI() {
         }
     // end of book animation
     
+    // open vCard link in new tab
+    document.getElementById('vcard-button').addEventListener('click', function () {
+        window.open('https://carolinadcf.github.io/vcard/', '_blank');
+    });
+
     UIState.interactionEnabled = true;
 }

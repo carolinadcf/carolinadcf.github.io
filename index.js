@@ -8,6 +8,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
+import { securityShader } from './data/shaders/shader atlas.js';
 import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 
@@ -18,8 +19,6 @@ class App {
         this.fps = 0;
         this.elapsedTime = 0; // clock is ok but might need more time control to dinamicaly change signing speed
         this.clock = new THREE.Clock();
-		this.day = 0;
-		this.dayData = 0;
 
         this.scene = null;
         this.renderer = null;
@@ -27,7 +26,6 @@ class App {
 		this.OriginalCameraPosition = new THREE.Vector3(12.5, 3.5, 8);
 		this.OriginalCameraTarget = new THREE.Vector3(2.5, 3, 3);
         this.controls = null;        
-		this.lights = [];
 		
 		// projects and frames
 		this.projects = [];
@@ -53,12 +51,16 @@ class App {
 		this.mixerAvatar = null;
 
 		// actions
-		this.currentAction = 'sad';
-		this.idleAction = 'sad';
+		this.idleAction = 'holding';
+		this.currentAction = this.idleAction;
 		this.baseActions = {
-			sad: {weight: 1},
-			wave: {weight: 0}
+			breathe: {weight: 0},
+			look: {weight: 0},
+			sad: {weight: 0},
+			wave: {weight: 0},
+			holding: {weight: 0}
 		};
+		this.baseActions[this.idleAction].weight = 1;
 
 		// positional audio for record player
 		this.jukebox = null;
@@ -81,12 +83,40 @@ class App {
 		this.renderPass = null;
 		this.outlinePass = null;
 		this.selectedObjects = [ ];
+
+		// light
+		this.lights = [];
+		this.day = true;
+		this.lightTransition = null; // transition state (used for smooth day/night lerp)
+		this.lightConfig = {
+			day: {
+				ambientIntensity: 1.0,
+				ambientColor: new THREE.Color("#ffffff"),
+				dirIntensity: 1.0,
+				dirColor: new THREE.Color("#ffffff"),
+				bgColor: new THREE.Color("#657aa2"),
+				exposure: 1.0,
+				frameIntensity: 0.0,
+				avatarLightIntensity: 0.0
+			},
+			night:
+			{
+				ambientIntensity: 0.75,
+				ambientColor: new THREE.Color("#2a3b4f"),
+				dirIntensity: 0.45,
+				dirColor: new THREE.Color("#99bbff"),
+				bgColor: new THREE.Color("#071226"),
+				exposure: 0.8,
+				frameIntensity: 1.5,
+				avatarLightIntensity: 2.0
+			}
+		};
 	}
 
 	init( ) {
 		// scene
 		this.scene = new THREE.Scene();
-		this.scene.background = new THREE.Color( 0x4d575e );
+		this.scene.background = this.day ? this.lightConfig.day.bgColor.clone() : this.lightConfig.night.bgColor.clone();
 
 		// renderer
 		this.renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true, logarithmicDepthBuffer: true } );
@@ -96,13 +126,13 @@ class App {
 		this.renderer.shadowMap.type = THREE.VSMShadowMap;
 		
         this.renderer.toneMapping = THREE.CineonToneMapping;
+		this.renderer.toneMappingExposure = this.day ? this.lightConfig.day.exposure : this.lightConfig.night.exposure;
 		document.getElementById('webgl').appendChild(this.renderer.domElement);
 
 		// label renderer
 		this.labelRenderer.setSize( window.innerWidth, window.innerHeight );
 		this.labelRenderer.domElement.style.pointerEvents = 'none';
 		document.body.appendChild(this.labelRenderer.domElement);
-		// this.labelRenderer.domElement.style.pointerEvents = 'none';
 		// document.getElementById('css').appendChild(this.labelRenderer.domElement);
 
 		// camera
@@ -181,20 +211,20 @@ class App {
 			
 			this.scene.add( this.carol );
 
-			const skeleton = new THREE.SkeletonHelper(this.carol);
-			// this.scene.add(skeleton);  // Optional: to visualize the skeleton
+			// const skeleton = new THREE.SkeletonHelper(this.carol);
+			// this.scene.add(skeleton);
 	
 			// Create an AnimationMixer for your avatar
 			this.mixerAvatar = new THREE.AnimationMixer(this.carol);
 
-			// Load the Mixamo animation
-			this.gltfLoader.load('./data/animations/sad.glb', (gltf) => {
+			// load idle animation
+			this.gltfLoader.load('./data/animations/' + this.idleAction + '.glb', (gltf) => {
 				const animation = gltf.animations[0];  // Assuming it's the first animation
-				animation.name = "sad"; // rename animation
+				animation.name = this.idleAction; // rename animation
 				
 				// Create an action for the Mixamo animation and play it
-				this.baseActions.sad.action = this.mixerAvatar.clipAction(animation);
-				this.baseActions.sad.action.play();
+				this.baseActions[this.idleAction].action = this.mixerAvatar.clipAction(animation);
+				this.baseActions[this.idleAction].action.play();
 				}, undefined, function(error) {
 				console.error('An error occurred while loading the animation:', error);
 			});
@@ -213,12 +243,21 @@ class App {
 				console.error('An error occurred while loading the animation:', error);
 			});
 
-			// when wave ends, go back to idle (sad)
+			// when wave ends, go back to idle
 			this.mixerAvatar.addEventListener('finished', (e) => {
 				if (e.action === this.baseActions.wave.action) {
 					this.swapAnimations(this.idleAction);
 				}
 			});
+
+			// light for avatar
+			const avatarLight = new THREE.SpotLight(0xffffff, 2.0, 10, Math.PI / 6, 0.2, 2);
+			avatarLight.position.set(0, 3, 2);
+			avatarLight.target = this.carol;
+			// identify the light
+			avatarLight.name = 'avatarLight';
+			this.carol.userData.avatarLight = avatarLight;
+			this.carol.add(avatarLight);
 		});
 
 		// jukebox
@@ -380,6 +419,7 @@ class App {
 					const frameMaterial = new THREE.MeshStandardMaterial({ map: texture, toneMapped: false});
 					const frame = new THREE.Mesh(frameGeometry, frameMaterial);
 					frame.position.z = 0.01; // slightly in front of back plane
+					frame.name = "frameImage";
 					this.frames[i].add(frame);
 					
 					// back plane (frame)
@@ -388,6 +428,7 @@ class App {
 					const backMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
 					const backPlane = new THREE.Mesh(backGeometry, backMaterial);
 					backPlane.position.z = -0.01; // slightly behind the image
+					backPlane.name = "frameBack";
 					this.frames[i].add(backPlane);
 
 					// bottom right of the frame
@@ -409,7 +450,26 @@ class App {
 					cardMesh.position.set( x, y, 0.01 ); // slightly in front of frame image
 					// attach project data for click handling
 					cardMesh.userData.project = project;
+					cardMesh.name = "cardMesh";
 					this.frames[i].add(cardMesh);
+					
+					// add a small light to highlight the frame at night (start off)
+					const frameLight = new THREE.SpotLight(0xfff2c8, 0.0, 6, Math.PI / 3, 0.3, 2);
+					frameLight.position.set(0, 1.6, 1);
+					frameLight.target = backPlane;
+					frameLight.name = 'frameLight';
+					this.frames[i].add(frameLight);
+					this.frames[i].userData.frameLight = frameLight;
+					
+					// wall lamps model
+					this.gltfLoader.load( './data/wall_lamp/scene.gltf', ( gltf ) => {
+						const wallLamp = gltf.scene;
+						wallLamp.scale.set(0.005,0.005,0.005);
+						wallLamp.position.set(0, 1.6, 0.5);
+						wallLamp.name = "wallLamp";
+						
+						this.frames[i].add( wallLamp );
+					});
 				});
 
 				// add to scene
@@ -418,6 +478,22 @@ class App {
 		})
 		.catch(error => {
 			console.error('Error loading projects data:', error);
+		});
+
+		// security camera
+		this.gltfLoader.load( './data/security_camera/scene.gltf', ( gltf ) => {
+			this.securityCamera = gltf.scene;
+			this.securityCamera.name = "securityCamera";
+			this.securityCamera.position.set(9.5, 5.5, -9.5);
+			this.securityCamera.scale.set(0.3,0.3,0.3);
+			this.securityCamera.rotation.y = -Math.PI / 4;
+			gltf.scene.traverse(function (child) {
+				if (child.isMesh) {
+					child.castShadow = true;
+					child.receiveShadow = true;
+				}
+			});
+			this.scene.add(this.securityCamera);
 		});
 
 		// postprocessing
@@ -436,6 +512,11 @@ class App {
 		this.effectFXAA = new ShaderPass(FXAAShader);
 		this.effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight);
 		this.composer.addPass(this.effectFXAA);
+		
+		// black and white shader
+		this.securityShader = new ShaderPass(securityShader);
+		this.securityShader.enabled = false;
+		this.composer.addPass(this.securityShader);
 		// end postprocessing
 
 		// initialize UI
@@ -448,6 +529,7 @@ class App {
 		window.addEventListener( 'resize', this.onWindowResize.bind(this) );
 		window.addEventListener( 'mousemove', this.onMouseMove.bind(this), false );
 		window.addEventListener( 'click', this.onMouseClick.bind(this), false );
+		window.addEventListener( 'keydown', this.onKeyDown.bind(this), false );
 		
 		// remove UI when moving camera
 		this.controls.addEventListener( 'change', () => {
@@ -502,7 +584,6 @@ class App {
 		this.labelRenderer.setSize( window.innerWidth, window.innerHeight );
 
 		this.animate();
-
 	}
 
     animate() {
@@ -520,26 +601,159 @@ class App {
 		}
 		
 		this.controls.update();
+
+		// update smooth light transition if active
+		if (this.lightTransition && this.lightTransition.active) {
+			const now = performance.now();
+			const lt = this.lightTransition;
+			const t = Math.min((now - lt.start) / lt.duration, 1);
+
+			// lerp numeric values
+			const lerp = (a, b, v) => a + (b - a) * v;
+			this.ambientLight.intensity = lerp(lt.from.ambientIntensity, lt.to.ambientIntensity, t);
+			this.dirLight.intensity = lerp(lt.from.dirIntensity, lt.to.dirIntensity, t);
+			if (this.carol && this.carol.userData.avatarLight) {
+				this.carol.userData.avatarLight.intensity = lerp(lt.from.avatarLightIntensity, lt.to.avatarLightIntensity, t);
+			}
+			this.renderer.toneMappingExposure = lerp(lt.from.exposure, lt.to.exposure, t);
+
+			// lerp colors
+			this.ambientLight.color.lerpColors(lt.from.ambientColor, lt.to.ambientColor, t);
+			this.dirLight.color.lerpColors(lt.from.dirColor, lt.to.dirColor, t);
+			if (this.scene.background && lt.from.bgColor && lt.to.bgColor) {
+				this.scene.background.lerpColors(lt.from.bgColor, lt.to.bgColor, t);
+			}
+
+			// lerp per-frame lights (if present)
+			if (lt.to.frameIntensity !== undefined) {
+				for (let f of this.frames) {
+					if (f.userData && f.userData.frameLight) {
+						const fl = f.userData.frameLight;
+						const fromVal = (lt.from.frameLightMap && lt.from.frameLightMap[f.uuid] !== undefined) ? lt.from.frameLightMap[f.uuid] : fl.intensity;
+						fl.intensity = lerp(fromVal, lt.to.frameIntensity, t);
+					}
+				}
+			}
+
+			if (t >= 1) {
+				this.lightTransition.active = false;
+				this.day = lt.targetDay ? true : false;
+			}
+		}
 		
+		// update security shader time
+		this.securityShader.uniforms['time'].value += delta;
+
+		// render
 		this.composer.render();
 		this.labelRenderer.render( this.scene, this.camera );
 	}
 
 	addLights() {
-		const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
-		this.scene.add(ambientLight);
-
-		const dirLight = new THREE.DirectionalLight( 0xffffff, 1 );
-		dirLight.position.set( -2, 10, 0 );
-		dirLight.castShadow = true;
-		dirLight.shadow.radius = 4;
-		dirLight.shadow.bias = - 0.0005;
-
+		// initial lights
+		this.ambientLight = new THREE.AmbientLight(this.lightConfig.day.ambientColor, this.lightConfig.day.ambientIntensity);
+		this.scene.add(this.ambientLight);
+		
+		this.dirLight = new THREE.DirectionalLight( this.lightConfig.day.dirColor, this.lightConfig.day.dirIntensity );
+		this.dirLight.position.set( -2, 10, 0 );
+		this.dirLight.castShadow = true;
+		this.dirLight.shadow.radius = 4;
+		this.dirLight.shadow.bias = - 0.0005;
+		
 		const dirGroup = new THREE.Group();
-		dirGroup.add( dirLight );
+		dirGroup.add( this.dirLight );
 		this.scene.add( dirGroup );
+		
+		this.lights.push(this.ambientLight, this.dirLight);
+	}
 
-		this.lights.push(ambientLight, dirLight);
+	startLightTransition(targetDay, duration = 1200) {
+		// capture from/to states
+		let from = {
+			ambientIntensity: this.ambientLight.intensity,
+			ambientColor: this.ambientLight.color.clone(),
+			dirIntensity: this.dirLight.intensity,
+			dirColor: this.dirLight.color.clone(),
+			bgColor: this.scene.background ? this.scene.background.clone() : new THREE.Color(0x000000),
+			exposure: (this.renderer.toneMappingExposure !== undefined) ? this.renderer.toneMappingExposure : 1.0,
+			avatarLightIntensity: (this.carol && this.carol.userData.avatarLight) ? this.carol.userData.avatarLight.intensity : 0.0
+		};
+
+		// capture current per-frame light intensities (map by frame uuid)
+		from.frameLightMap = {};
+		for (let f of this.frames) {
+			if (f.userData && f.userData.frameLight) {
+				from.frameLightMap[f.uuid] = f.userData.frameLight.intensity;
+			}
+		}
+
+		let to = {
+			ambientIntensity: targetDay ? this.lightConfig.day.ambientIntensity : this.lightConfig.night.ambientIntensity,
+			ambientColor: targetDay ? this.lightConfig.day.ambientColor.clone() : this.lightConfig.night.ambientColor.clone(),
+			dirIntensity: targetDay ? this.lightConfig.day.dirIntensity : this.lightConfig.night.dirIntensity,
+			dirColor: targetDay ? this.lightConfig.day.dirColor.clone() : this.lightConfig.night.dirColor.clone(),
+			bgColor: targetDay ? this.lightConfig.day.bgColor.clone() : this.lightConfig.night.bgColor.clone(),
+			exposure: targetDay ? this.lightConfig.day.exposure : this.lightConfig.night.exposure,
+			frameIntensity: targetDay ? this.lightConfig.day.frameIntensity : this.lightConfig.night.frameIntensity,
+			avatarLightIntensity: targetDay ? this.lightConfig.day.avatarLightIntensity : this.lightConfig.night.avatarLightIntensity
+		};
+
+		this.lightTransition = {
+			active: true,
+			start: performance.now(),
+			duration: duration,
+			from: from,
+			to: to,
+			targetDay: targetDay
+		};
+	}
+	
+	toggleSecurityMode() {
+		this.securityShader.enabled = !this.securityShader.enabled;
+		this.outlinePass.enabled = !this.securityShader.enabled;
+		// disable controls when security shader is on
+		UIState.interactionEnabled = !this.securityShader.enabled;
+		this.controls.enabled = !this.securityShader.enabled;
+
+		// MOVE CAMERA
+		if (!this.securityShader.enabled) {
+			// move back to original position
+			this.cameraCinematicMove(this.OriginalCameraPosition, this.OriginalCameraTarget, 1000);
+			return;
+		}
+		
+		// move camera to front of security camera position
+		const cameraPosition = new THREE.Vector3();
+		this.securityCamera.getWorldPosition(cameraPosition);
+		// slight offset forward
+		cameraPosition.x -= 0.8;
+		cameraPosition.z += 0.75;
+		cameraPosition.y -= 0.5;
+		const cameraNormal = new THREE.Vector3(0, 0, -1);
+		cameraNormal.applyQuaternion(this.securityCamera.quaternion);
+		const newCameraPosition = cameraPosition.clone().add(cameraNormal.clone());
+
+		// animate camera movement
+		this.cameraCinematicMove(newCameraPosition, cameraPosition, 1000);
+	}
+	
+	onKeyDown(event) {
+		if (!event.key) return;
+		const key = event.key.toLowerCase();
+		
+		switch (key) {
+			case 'n':
+			const targetDay = !this.day;
+			this.startLightTransition(targetDay, 1200);
+			break;
+			case 'g': // security camera shader
+			this.toggleSecurityMode();
+			break;
+			case 'escape': // exit security camera mode
+			if (this.securityShader.enabled) {
+				this.toggleSecurityMode();
+			}
+		}
 	}
 
 	onMouseMove( event ) {
@@ -650,6 +864,14 @@ class App {
 			this.contactSelected = null;
 			window.open(link, '_blank');
 		}
+
+		// secutiry camera
+		if (this.securityCamera) {
+			const intersectsCamera = this.raycaster.intersectObject( this.securityCamera, true );
+			if (intersectsCamera.length > 0) {
+				this.toggleSecurityMode();
+			}
+		}
 	}
 
 	checkIntersections() {
@@ -661,8 +883,8 @@ class App {
 		
 		// reset all frames
 		this.frames.forEach( (frame) => {
-			frame.children[1].material.emissive = new THREE.Color(0x000000);
-			frame.children[1].material.color = new THREE.Color(0x000000);
+			frame.getObjectByName("frameBack").material.emissive = new THREE.Color(0x000000);
+			frame.getObjectByName("frameBack").material.color = new THREE.Color(0x000000);
 		});
 		
 		// highlight intersected frame
@@ -674,13 +896,18 @@ class App {
 			};
 			// highlight border of frame
 			this.intersectedFrame = intersects[i].object.parent;
-			this.intersectedFrame.children[1].material.color = new THREE.Color(0xffffff);
-			this.intersectedFrame.children[1].material.emissive = new THREE.Color(0xffffff);
-			this.currentFrameIndex = this.frames.indexOf(this.intersectedFrame);
+			try {
+				this.intersectedFrame.getObjectByName("frameBack").material.emissive = new THREE.Color(0xffffff);
+				this.intersectedFrame.getObjectByName("frameBack").material.color = new THREE.Color(0xffffff);
+				this.currentFrameIndex = this.frames.indexOf(this.intersectedFrame);
+			} catch (e) {
+				// in case intersected object is not part of a frame (light, wall lamp, etc)
+				this.intersectedFrame = null;
+			}
 		}
 		
 		// change cursor style
-		if ( intersects.length > 0 ) { $('html, body').css('cursor', 'pointer'); }
+		if ( intersects.length > 0 && this.intersectedFrame ) { $('html, body').css('cursor', 'pointer'); }
 		else {
 			$('html, body').css('cursor', 'default');
 			this.intersectedFrame = null;
@@ -751,6 +978,17 @@ class App {
 				}
 			}
 		}
+
+		// security camera interaction
+		if (this.securityCamera) {
+			const intersectsCamera = this.raycaster.intersectObject( this.securityCamera, true );
+			if (intersectsCamera.length > 0) {
+				// outline security camera
+				this.selectedObjects = [ this.securityCamera ];
+			}
+		}
+
+		// update outline pass
 		this.outlinePass.selectedObjects = this.selectedObjects;
 	}
 

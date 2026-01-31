@@ -730,7 +730,9 @@ class App {
 		// MOVE CAMERA
 		if (!this.securityShader.enabled) {
 			// move back to original position
-			this.cameraCinematicMove(this.OriginalCameraPosition, this.OriginalCameraTarget, 1000);
+			this.camera.position.copy(this.OriginalCameraPosition);
+			this.controls.target.copy(this.OriginalCameraTarget);
+			this.controls.update();
 			return;
 		}
 		
@@ -745,8 +747,10 @@ class App {
 		cameraNormal.applyQuaternion(this.securityCamera.quaternion);
 		const newCameraPosition = cameraPosition.clone().add(cameraNormal.clone());
 
-		// animate camera movement
-		this.cameraCinematicMove(newCameraPosition, cameraPosition, 1000);
+		// change camera position and look at museum center
+		this.camera.position.copy(newCameraPosition);
+		this.controls.target.copy(new THREE.Vector3(0, 1, 0));
+		this.controls.update();
 	}
 	
 	onKeyDown(event) {

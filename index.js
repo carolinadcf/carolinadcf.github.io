@@ -535,6 +535,7 @@ class App {
 		this.controls.addEventListener( 'change', () => {
 			document.getElementById('scene-ui').style.display = 'none';
 			document.getElementById('project-modal').style.display = 'none';
+			this.carol.isSelected = false;
 		} );
 
 		// camera back to center
@@ -866,27 +867,26 @@ class App {
 		// say hi
 		if (this.carol) {
 			const intersectsAvatar = this.raycaster.intersectObject( this.carol, true );
-			if (intersectsAvatar.length > 0) {
-				this.carol.isSelected = true;
-
+			// first time click on avatar
+			if (intersectsAvatar.length > 0 && !this.carol.isSelected) {
 				// move camera to me
 				const avatarPosition = new THREE.Vector3();
 				this.carol.getWorldPosition(avatarPosition);
+				avatarPosition.y += 2.5; // offset a bit up (face level)
 				const avatarNormal = new THREE.Vector3(0, 0, 1);
 				avatarNormal.applyQuaternion(this.carol.quaternion);
-
-				// offset a bit up (face level)
-				avatarPosition.y += 2.5;
 
 				const newCameraPosition = avatarPosition.clone().add(avatarNormal.clone().multiplyScalar(2));
 
 				this.cameraCinematicMove(newCameraPosition, avatarPosition, 1000, () => {
 					// show only back to center button for avatar view
 					this.toggleSceneUI(true, true, false);
-
-					// talk 3d message
 					this.showTalkMessage("Hi there! Nice to meet you!", 3000);
+					this.carol.isSelected = true;
 				})
+			} // if clicked again to say goodbye
+			else if (intersectsAvatar.length > 0 && this.carol.isSelected) {
+				this.showTalkMessage("Goodbye! See you later!", 2000);
 			}
 		}
 

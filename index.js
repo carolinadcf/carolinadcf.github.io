@@ -785,6 +785,8 @@ class App {
 		}
 
 		if (this.intersectedFrame) {
+			// change current only if clicked
+			this.currentFrameIndex = this.frames.indexOf(this.intersectedFrame);
 			// move camera to the front of the frame
 			const framePosition = new THREE.Vector3();
 			this.intersectedFrame.getWorldPosition(framePosition);
@@ -899,7 +901,6 @@ class App {
 			try {
 				this.intersectedFrame.getObjectByName("frameBack").material.emissive = new THREE.Color(0xffffff);
 				this.intersectedFrame.getObjectByName("frameBack").material.color = new THREE.Color(0xffffff);
-				this.currentFrameIndex = this.frames.indexOf(this.intersectedFrame);
 			} catch (e) {
 				// in case intersected object is not part of a frame (light, wall lamp, etc)
 				this.intersectedFrame = null;

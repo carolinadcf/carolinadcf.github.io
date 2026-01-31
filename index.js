@@ -874,6 +874,35 @@ class App {
 			}
 		}
 
+		// say hi
+		if (this.carol) {
+			const intersectsAvatar = this.raycaster.intersectObject( this.carol, true );
+			if (intersectsAvatar.length > 0) {
+				// move camera to me
+				const avatarPosition = new THREE.Vector3();
+				this.carol.getWorldPosition(avatarPosition);
+				const avatarNormal = new THREE.Vector3(0, 0, 1);
+				avatarNormal.applyQuaternion(this.carol.quaternion);
+
+				// offset a bit up (face level)
+				avatarPosition.y += 2.5;
+
+				const newCameraPosition = avatarPosition.clone().add(avatarNormal.clone().multiplyScalar(2));
+
+				this.cameraCinematicMove(newCameraPosition, avatarPosition, 1000, () => {
+					// show only back to center button for avatar view
+					document.getElementById('scene-ui').style.display = 'flex';
+					document.getElementById('back-button').style.display = 'inline-block';
+					document.getElementById('prev-button').style.display = 'none';
+					document.getElementById('next-button').style.display = 'none';
+					document.getElementById('visit-link-button').style.display = 'none';
+
+					// talk 3d message
+					this.showTalkMessage("Hi there! Nice to meet you!", 3000);
+				})
+			}
+		}
+
 		// contact info
 		if (this.contactSelected) {
 			const link = this.contactInfo[this.contactSelected];
@@ -888,6 +917,44 @@ class App {
 				this.toggleSecurityMode();
 			}
 		}
+	}
+
+	showTalkMessage(message, duration = 2000) {
+		if (!this.carol) return;
+
+		// remove any existing bubble
+		const old = document.getElementById('speech-bubble');
+		if (old) old.remove();
+
+		// create bubble element
+		const bubble = document.createElement('div');
+		bubble.id = 'speech-bubble';
+		bubble.innerText = message;
+
+		// position bubble above and next to avatar in screen space
+		const avatarPosition = new THREE.Vector3();
+		this.carol.getWorldPosition(avatarPosition);
+		avatarPosition.y += 2.65; // above head
+		avatarPosition.x += 0.55; // to the side
+		const vector = avatarPosition.project(this.camera);
+
+		const x = (vector.x + 1) / 2 * window.innerWidth;
+		const y = (-vector.y + 1) / 2 * window.innerHeight;
+
+		bubble.style.left = `${x}px`;
+		bubble.style.top = `${y}px`;
+		bubble.style.position = 'absolute';
+		bubble.style.transform = 'translate(-50%, -100%)';
+
+		// add to document
+		document.body.appendChild(bubble);
+
+		// auto-remove after duration
+		setTimeout(() => {
+			const b = document.getElementById('speech-bubble');
+			if (b) b.remove();
+		}, duration);
+
 	}
 
 	checkIntersections() {
@@ -1145,7 +1212,10 @@ class App {
 			if (t < 1) {
 				requestAnimationFrame(animateCamera);
 			}
-			if (callback) callback();
+			// call callback when done
+			else {
+				if (callback) callback();
+			}
 		};
 
 		requestAnimationFrame(animateCamera);

@@ -756,6 +756,8 @@ hr {
     font-size: 14px;
     color: var(--text-dark-color);
     position: absolute;
+    pointer-events: none;
+
 }
 #speech-bubble::after {
     content: '';

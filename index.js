@@ -129,11 +129,10 @@ class App {
 		this.renderer.toneMappingExposure = this.day ? this.lightConfig.day.exposure : this.lightConfig.night.exposure;
 		document.getElementById('webgl').appendChild(this.renderer.domElement);
 
-		// label renderer
+		// 3d label renderer
 		this.labelRenderer.setSize( window.innerWidth, window.innerHeight );
 		this.labelRenderer.domElement.style.pointerEvents = 'none';
 		document.body.appendChild(this.labelRenderer.domElement);
-		// document.getElementById('css').appendChild(this.labelRenderer.domElement);
 
 		// camera
 		this.camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 100 );
@@ -642,6 +641,17 @@ class App {
 				this.day = lt.targetDay ? true : false;
 			}
 		}
+
+		// update speech bubble size
+		if (this.speechBubble) {
+			const dist = this.camera.position.distanceTo(this.carol.position);
+			// adjust scale based on distance
+			const scale = THREE.MathUtils.clamp(0.0005 * dist, 0.001, 0.005);
+			this.speechBubble.scale.set(scale, scale, scale);
+			// adjust x position based on distance (the closer, the more to the right)
+			let offsetX = THREE.MathUtils.clamp(0.7 - 1 / dist, 0.0, 0.7);
+			this.speechBubble.position.x = 0.1 + offsetX;
+		}
 		
 		// update security shader time
 		this.securityShader.uniforms['time'].value += delta;
@@ -886,7 +896,7 @@ class App {
 				})
 			} // if clicked again to say goodbye
 			else if (intersectsAvatar.length > 0 && this.carol.isSelected) {
-				this.showTalkMessage("Goodbye! See you later!", 2000);
+				this.showTalkMessage("I am working on this!", 2000);
 			}
 		}
 
@@ -919,37 +929,33 @@ class App {
 	showTalkMessage(message, duration = 2000) {
 		if (!this.carol) return;
 
-		// remove any existing bubble
-		const old = document.getElementById('speech-bubble');
-		if (old) old.remove();
+		// remove any existing speech bubble attached to avatar
+		if (this.speechBubble) {
+			this.carol.remove(this.speechBubble);
+			this.speechBubble = null;
+		}
 
-		// create bubble element
+		// create bubble DOM element
 		const bubble = document.createElement('div');
 		bubble.id = 'speech-bubble';
+		bubble.className = 'speech-bubble';
 		bubble.innerText = message;
 
-		// position bubble above and next to avatar in screen space
-		const avatarPosition = new THREE.Vector3();
-		this.carol.getWorldPosition(avatarPosition);
-		avatarPosition.y += 2.65; // above head
-		avatarPosition.x += 0.55; // to the side
-		const vector = avatarPosition.project(this.camera);
-
-		const x = (vector.x + 1) / 2 * window.innerWidth;
-		const y = (-vector.y + 1) / 2 * window.innerHeight;
-
-		bubble.style.left = `${x}px`;
-		bubble.style.top = `${y}px`;
-		bubble.style.position = 'absolute';
-		bubble.style.transform = 'translate(-50%, -100%)';
-
-		// add to document
-		document.body.appendChild(bubble);
+		// create CSS2DObject and attach to avatar so it moves with it
+		const label = new CSS3DObject(bubble);
+		label.name = 'speech-bubble';
+		// offset relative to avatar (to the right and above head)
+		label.position.set(0.6, 1.6, 0);
+		label.scale.set(0.005, 0.005, 0.005);
+		this.speechBubble = label;
+		this.carol.add(label);
 
 		// auto-remove after duration
 		setTimeout(() => {
-			const b = document.getElementById('speech-bubble');
-			if (b) b.remove();
+			if (this.speechBubble) {
+				this.carol.remove(this.speechBubble);
+				this.speechBubble = null;
+			}
 		}, duration);
 
 	}

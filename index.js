@@ -89,7 +89,7 @@ class App {
 		this.scene.background = new THREE.Color( 0x4d575e );
 
 		// renderer
-		this.renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true } );
+		this.renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true, logarithmicDepthBuffer: true } );
 		this.renderer.setPixelRatio( window.devicePixelRatio );
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
 		this.renderer.shadowMap.enabled = true;

@@ -806,11 +806,7 @@ class App {
 			// animate camera movement
 			this.cameraCinematicMove(newCameraPosition, framePosition, 1000, () => {
 				// show full scene UI (back + prev/next + visit)
-				document.getElementById('scene-ui').style.display = 'flex';
-				document.getElementById('back-button').style.display = 'inline-block';
-				document.getElementById('prev-button').style.display = 'inline-block';
-				document.getElementById('next-button').style.display = 'inline-block';
-				document.getElementById('visit-link-button').style.display = 'inline-block';
+				this.toggleSceneUI(true, true, true);
 				// add clickable functional link
 				const project = this.projects[this.currentFrameIndex];
 				var link = document.getElementById('visit-link-button');
@@ -842,11 +838,7 @@ class App {
 				// animate camera movement
 				this.cameraCinematicMove(newCameraPosition, jukeboxPosition, 1000, () => {
 					// show only back to center button for jukebox view
-					document.getElementById('scene-ui').style.display = 'flex';
-					document.getElementById('back-button').style.display = 'inline-block';
-					document.getElementById('prev-button').style.display = 'none';
-					document.getElementById('next-button').style.display = 'none';
-					document.getElementById('visit-link-button').style.display = 'none';
+					this.toggleSceneUI(true, true, false);
 				});
 			}
 		}
@@ -866,11 +858,7 @@ class App {
 				// animate camera movement
 				this.cameraCinematicMove(newCameraPosition, phonePosition, 1000, () => {
 					// show only back to center button for phone view
-					document.getElementById('scene-ui').style.display = 'flex';
-					document.getElementById('back-button').style.display = 'inline-block';
-					document.getElementById('prev-button').style.display = 'none';
-					document.getElementById('next-button').style.display = 'none';
-					document.getElementById('visit-link-button').style.display = 'none';
+					this.toggleSceneUI(true, true, false);
 				});
 			}
 		}
@@ -894,11 +882,7 @@ class App {
 
 				this.cameraCinematicMove(newCameraPosition, avatarPosition, 1000, () => {
 					// show only back to center button for avatar view
-					document.getElementById('scene-ui').style.display = 'flex';
-					document.getElementById('back-button').style.display = 'inline-block';
-					document.getElementById('prev-button').style.display = 'none';
-					document.getElementById('next-button').style.display = 'none';
-					document.getElementById('visit-link-button').style.display = 'none';
+					this.toggleSceneUI(true, true, false);
 
 					// talk 3d message
 					this.showTalkMessage("Hi there! Nice to meet you!", 3000);
@@ -920,6 +904,16 @@ class App {
 				this.toggleSecurityMode();
 			}
 		}
+	}
+
+	toggleSceneUI(showSceneUI, showBackButton, moveArtButtons) {
+		document.getElementById('scene-ui').style.display = showSceneUI ? 'flex' : 'none';
+
+		document.getElementById('back-button').style.display = showBackButton ? 'inline-block' : 'none';
+
+		document.getElementById('prev-button').style.display = moveArtButtons ? 'inline-block' : 'none';
+		document.getElementById('next-button').style.display = moveArtButtons ? 'inline-block' : 'none';
+		document.getElementById('visit-link-button').style.display = moveArtButtons ? 'inline-block' : 'none';
 	}
 
 	showTalkMessage(message, duration = 2000) {

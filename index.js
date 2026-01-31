@@ -566,9 +566,6 @@ class App {
 				// create an HTML card for the modal (keeps existing styling)
 				const htmlCard = this.createProjectCard(obj.userData.project);
 				this.showCardModal(obj.userData.project, htmlCard);
-				this.intersectedFrame.children[1].material.emissive = new THREE.Color(0x000000);
-				this.intersectedFrame.children[1].material.color = new THREE.Color(0x000000);
-				this.intersectedFrame = null; // reset intersected frame to avoid camera movement
 				return;
 			}
 		}
@@ -738,17 +735,14 @@ class App {
 						obj = obj.parent;
 						if (obj.name === "github") {
 							$('html, body').css('cursor', 'pointer');
-							console.log('github');
 							this.selectedObjects = [ obj ];
 							this.contactSelected = 'github';
 						} else if (obj.name === "linkedin") {
 							$('html, body').css('cursor', 'pointer');
-							console.log('linkedin');
 							this.selectedObjects = [ obj ];
 							this.contactSelected = 'linkedin';
 						} else if (obj.name === "mail") {
 							$('html, body').css('cursor', 'pointer');
-							console.log('mail');
 							this.selectedObjects = [ obj ];
 							this.contactSelected = 'mail';
 						}

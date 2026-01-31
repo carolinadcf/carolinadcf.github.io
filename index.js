@@ -749,7 +749,7 @@ class App {
 
 		// change camera position and look at museum center
 		this.camera.position.copy(newCameraPosition);
-		this.controls.target.copy(new THREE.Vector3(0, 1, 0));
+		this.controls.target.copy(new THREE.Vector3(0, 3, 0));
 		this.controls.update();
 	}
 	

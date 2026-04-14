@@ -198,6 +198,55 @@ body {
     font-size: 0.8em;
 }
 
+/* ticket controls placed at bottom of ticket/check */
+.bottom-controls {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%) translateY(8px);
+    bottom: 18px;
+    display: flex;
+    /* visible on load; hidden via opacity until shown */
+    gap: 14px;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    /* disabled when hidden */
+    z-index: 250;
+    opacity: 0;
+    transition: opacity 320ms ease, transform 320ms ease;
+}
+
+.bottom-controls .bc-section {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: var(--primary-color);
+    /* less transparent */
+    padding: 10px 14px;
+    border-radius: 10px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.bottom-controls .bc-icon svg {
+    width: 28px;
+    height: 28px;
+    stroke: var(--secondary-color) !important;
+    fill: rgba(150, 125, 83, 0.12) !important;
+    color: var(--secondary-color) !important;
+}
+
+/* visible state for bottom controls (fade + slide up) */
+.bottom-controls.bc-visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+}
+
+.bottom-controls .bc-label {
+    color: var(--text-dark-color);
+    font-size: 0.95rem;
+}
+
 /* animations */
 @keyframes disappear {
     100% {
@@ -244,6 +293,16 @@ body {
     outline-offset: 10px;
     position: absolute;
     bottom: 14%;
+
+    /* ensure any inline stroke/fill (like in provided G svg) is overridden */
+    .bottom-controls .bc-icon svg [stroke] {
+        stroke: var(--secondary-color) !important;
+    }
+
+    .bottom-controls .bc-icon svg [fill] {
+        fill: var(--secondary-color) !important;
+    }
+
     left: 9%;
 }
 
@@ -759,6 +818,7 @@ hr {
     pointer-events: none;
 
 }
+
 #speech-bubble::after {
     content: '';
     position: absolute;

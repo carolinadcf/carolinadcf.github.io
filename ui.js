@@ -21,6 +21,9 @@ export function initUI() {
             canvas.style.pointerEvents = 'none';
             UIState.interactionEnabled = false; // disable raycaster interaction
         }
+        // show bottom controls when ticket is visible (fade in)
+        const bottomControls = document.getElementById('bottom-controls');
+        if (bottomControls) bottomControls.classList.add('bc-visible');
     });
 
     // close button
@@ -41,6 +44,9 @@ export function initUI() {
             canvas.style.pointerEvents = 'auto';
             UIState.interactionEnabled = true; // enable raycaster interaction
         }
+        // hide bottom controls when ticket closes (fade out)
+        const bottomControls = document.getElementById('bottom-controls');
+        if (bottomControls) bottomControls.classList.remove('bc-visible');
     });
 
     // show about me
@@ -117,4 +123,21 @@ export function initUI() {
     });
 
     UIState.interactionEnabled = true;
+
+    // show bottom controls on initial load, then hide when loader finishes
+    const bottomControls = document.getElementById('bottom-controls');
+    const preloader = document.getElementById('preloader');
+    if (bottomControls) {
+        bottomControls.classList.add('bc-visible');
+    }
+
+    if (preloader && bottomControls) {
+        const observer = new MutationObserver((mutations, obs) => {
+            if (preloader.classList.contains('preloader-animated')) {
+                bottomControls.classList.remove('bc-visible');
+                obs.disconnect();
+            }
+        });
+        observer.observe(preloader, { attributes: true, attributeFilter: ['class'] });
+    }
 }

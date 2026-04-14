@@ -229,6 +229,82 @@
     <div id="css"></div>
     <div id="webgl"></div>
 
+    <!-- bottom controls (global) -->
+    <div id="bottom-controls" class="bottom-controls" aria-hidden="false">
+        <div class="bc-section">
+            <div class="bc-icon">
+                <!-- left click small icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+                    <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="1.2">
+                        <path
+                            d="M13.5 2v4m0 4v2M5 2C3.945 3.132 3.235 4.501 3 6m9 1.5c0-.466 0-.699.076-.883a1 1 0 0 1 .541-.54C12.801 6 13.034 6 13.5 6s.699 0 .883.076a1 1 0 0 1 .54.541c.077.184.077.417.077.883v1c0 .466 0 .699-.076.883a1 1 0 0 1-.541.54c-.184.077-.417.077-.883.077s-.699 0-.883-.076a1 1 0 0 1-.54-.541C12 9.199 12 8.966 12 8.5z" />
+                        <path
+                            d="M6.24 17.089c.19 2.391 2.084 4.422 4.525 4.723c.898.11 1.81.188 2.735.188s1.837-.078 2.735-.188c2.44-.301 4.334-2.332 4.524-4.723c.132-1.657.241-3.357.241-5.089s-.11-3.432-.24-5.089c-.19-2.391-2.084-4.422-4.525-4.723C15.337 2.078 14.425 2 13.5 2s-1.837.078-2.735.188c-2.44.3-4.335 2.332-4.524 4.723C6.109 8.568 6 10.268 6 12s.109 3.432.24 5.089" />
+                    </g>
+                </svg>
+            </div>
+            <div class="bc-label">Rotate — Left‑click</div>
+        </div>
+
+        <div class="bc-section">
+            <div class="bc-icon">
+                <!-- right click small icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+                    <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="1.2">
+                        <path
+                            d="M10.5 2v4m0 4v2m-7.26 5.089c.19 2.391 2.084 4.422 4.525 4.723c.898.11 1.81.188 2.735.188s1.837-.078 2.735-.188c2.44-.301 4.334-2.332 4.524-4.723c.132-1.657.241-3.357.241-5.089s-.11-3.432-.24-5.089c-.19-2.391-2.084-4.422-4.525-4.723C12.337 2.078 11.425 2 10.5 2s-1.837.078-2.735.188c-2.44.3-4.335 2.332-4.524 4.723C3.109 8.568 3 10.268 3 12s.109 3.432.24 5.089M19 2c1.055 1.132 1.765 2.501 2 4" />
+                        <path
+                            d="M12 7.5c0-.466 0-.699-.076-.883a1 1 0 0 0-.541-.54C11.199 6 10.966 6 10.5 6s-.699 0-.883.076a1 1 0 0 0-.54.541C9 6.801 9 7.034 9 7.5v1c0 .466 0 .699.076.883a1 1 0 0 0 .541.54c.184.077.417.077.883.077s.699 0 .883-.076a1 1 0 0 0 .54-.541C12 9.199 12 8.966 12 8.5z" />
+                    </g>
+                </svg>
+            </div>
+            <div class="bc-label">Pan — Right‑click</div>
+        </div>
+
+        <div class="bc-section">
+            <div class="bc-icon">
+                <!-- scroll small icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+                    <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="1.2">
+                        <path
+                            d="M4.74 17.089c.19 2.391 2.084 4.422 4.525 4.723c.898.11 1.81.188 2.735.188s1.837-.078 2.735-.188c2.44-.301 4.334-2.332 4.524-4.723c.132-1.657.241-3.357.241-5.089s-.11-3.432-.24-5.089c-.19-2.391-2.084-4.422-4.525-4.723C13.837 2.078 12.925 2 12 2s-1.837.078-2.735.188c-2.44.3-4.335 2.332-4.524 4.723C4.609 8.568 4.5 10.268 4.5 12s.109 3.432.24 5.089M11.988 6.84v4.92" />
+                        <path
+                            d="M10.004 7.86c.982-1.02 1.58-1.92 2.036-1.856c.383-.003.742.596 1.964 1.856m-.008 3.282c-.982 1.02-1.58 1.92-2.036 1.855c-.383.003-.742-.595-1.964-1.855" />
+                    </g>
+                </svg>
+            </div>
+            <div class="bc-label">Zoom — Wheel / Pinch</div>
+        </div>
+
+        <div class="bc-section">
+            <div class="bc-icon">
+                <!-- N key icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 512 512"
+                    aria-hidden="true">
+                    <path fill="currentColor" fill-rule="evenodd"
+                        d="M277.333 405.333v85.333h-42.667v-85.333zm99.346-58.824l60.34 60.34l-30.17 30.17l-60.34-60.34zm-241.359 0l30.17 30.17l-60.34 60.34l-30.17-30.17zM256 139.353c64.422 0 116.647 52.224 116.647 116.647c0 64.422-52.225 116.647-116.647 116.647A116.427 116.427 0 0 1 139.352 256c0-64.423 52.225-116.647 116.648-116.647m0 42.666c-40.859 0-73.981 33.123-73.981 74.062a73.76 73.76 0 0 0 21.603 52.296c13.867 13.867 32.685 21.64 52.378 21.603zm234.666 52.647v42.667h-85.333v-42.667zm-384 0v42.667H21.333v-42.667zM105.15 74.98l60.34 60.34l-30.17 30.17l-60.34-60.34zm301.7 0l30.169 30.17l-60.34 60.34l-30.17-30.17zM277.332 21.333v85.333h-42.667V21.333z" />
+                </svg>
+            </div>
+            <div class="bc-label">N — Toggle Day/Night</div>
+        </div>
+
+        <div class="bc-section">
+            <div class="bc-icon">
+                <!-- G key icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 16 16" aria-hidden="true">
+                    <path fill="none" stroke-linecap="round" stroke-linejoin="round"
+                        d="M4.75 5.738h.007m6.33 1.941H14.5l-2.275 4.53l-2.008-2.796" />
+                    <path fill="none" stroke-linecap="round" stroke-linejoin="round"
+                        d="m11.9 6.061l-2.6 5.177l-6.753-3.365a1.898 1.89 0 0 1-.845-2.53l.897-1.805a1.898 1.89 0 0 1 2.548-.842ZM1.5 12.21h2.444a1.3 1.294 0 0 0 1.17-.712L6.05 9.62M1.5 13.503v-2.588" />
+                </svg>
+            </div>
+            <div class="bc-label">G — Toggle Security</div>
+        </div>
+    </div>
+
     <script type="module">
         // get the last commit date
         async function getLastCommitDate(owner, repo, branch) {

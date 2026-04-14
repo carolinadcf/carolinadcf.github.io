@@ -197,7 +197,7 @@ class App {
         );
 
         // me
-        this.gltfLoader.load( 'https://models.readyplayer.me/66e848b1356adbb310ece566.glb?morphTargets=ARKit,Oculus Visemes', ( gltf ) => {
+        this.gltfLoader.load( './data/avatar/carol.glb', ( gltf ) => {
 			this.carol = gltf.scene;
 			this.carol.name = "carol";
 
